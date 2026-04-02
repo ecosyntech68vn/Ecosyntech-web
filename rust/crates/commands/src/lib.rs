@@ -5,7 +5,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use plugins::{PluginError, PluginManager, PluginSummary};
-use runtime::{compact_session, CompactionConfig, Session};
+use runtime::{
+    compact_session, CompactionConfig, ConfigLoader, ConfigSource, McpOAuthConfig, McpServerConfig,
+    ScopedMcpServerConfig, Session,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CommandManifestEntry {
@@ -115,6 +118,13 @@ const SLASH_COMMAND_SPECS: &[SlashCommandSpec] = &[
         aliases: &[],
         summary: "Inspect Claude config files or merged sections",
         argument_hint: Some("[env|hooks|model|plugins]"),
+        resume_supported: true,
+    },
+    SlashCommandSpec {
+        name: "mcp",
+        aliases: &[],
+        summary: "Inspect configured MCP servers",
+        argument_hint: Some("[list|show <server>|help]"),
         resume_supported: true,
     },
     SlashCommandSpec {
@@ -272,6 +282,10 @@ pub enum SlashCommand {
     Config {
         section: Option<String>,
     },
+    Mcp {
+        action: Option<String>,
+        target: Option<String>,
+    },
     Memory,
     Init,
     Diff,
@@ -393,6 +407,7 @@ pub fn validate_slash_command_input(
         "config" => SlashCommand::Config {
             section: parse_config_section(&args)?,
         },
+        "mcp" => parse_mcp_command(&args)?,
         "memory" => {
             validate_no_args(command, &args)?;
             SlashCommand::Memory
@@ -547,6 +562,39 @@ fn parse_session_command(args: &[&str]) -> Result<SlashCommand, SlashCommandPars
             ),
             "session",
             "/session [list|switch <session-id>|fork [branch-name]]",
+        )),
+    }
+}
+
+fn parse_mcp_command(args: &[&str]) -> Result<SlashCommand, SlashCommandParseError> {
+    match args {
+        [] => Ok(SlashCommand::Mcp {
+            action: None,
+            target: None,
+        }),
+        ["list"] => Ok(SlashCommand::Mcp {
+            action: Some("list".to_string()),
+            target: None,
+        }),
+        ["list", ..] => Err(usage_error("mcp list", "")),
+        ["show"] => Err(usage_error("mcp show", "<server>")),
+        ["show", target] => Ok(SlashCommand::Mcp {
+            action: Some("show".to_string()),
+            target: Some((*target).to_string()),
+        }),
+        ["show", ..] => Err(command_error(
+            "Unexpected arguments for /mcp show.",
+            "mcp",
+            "/mcp show <server>",
+        )),
+        ["help"] | ["-h"] | ["--help"] => Ok(SlashCommand::Mcp {
+            action: Some("help".to_string()),
+            target: None,
+        }),
+        [action, ..] => Err(command_error(
+            &format!("Unknown /mcp action '{action}'. Use list, show <server>, or help."),
+            "mcp",
+            "/mcp [list|show <server>|help]",
         )),
     }
 }
@@ -728,7 +776,7 @@ fn slash_command_category(name: &str) -> &'static str {
         | "version" => "Session & visibility",
         "compact" | "clear" | "config" | "memory" | "init" | "diff" | "commit" | "pr" | "issue"
         | "export" | "plugin" => "Workspace & git",
-        "agents" | "skills" | "teleport" | "debug-tool-call" => "Discovery & debugging",
+        "agents" | "skills" | "teleport" | "debug-tool-call" | "mcp" => "Discovery & debugging",
         "bughunter" | "ultraplan" => "Analysis & automation",
         _ => "Other",
     }
@@ -1066,6 +1114,14 @@ pub fn handle_agents_slash_command(args: Option<&str>, cwd: &Path) -> std::io::R
     }
 }
 
+pub fn handle_mcp_slash_command(
+    args: Option<&str>,
+    cwd: &Path,
+) -> Result<String, runtime::ConfigError> {
+    let loader = ConfigLoader::default_for(cwd);
+    render_mcp_report_for(&loader, cwd, args)
+}
+
 pub fn handle_skills_slash_command(args: Option<&str>, cwd: &Path) -> std::io::Result<String> {
     match normalize_optional_args(args) {
         None | Some("list") => {
@@ -1075,6 +1131,41 @@ pub fn handle_skills_slash_command(args: Option<&str>, cwd: &Path) -> std::io::R
         }
         Some("-h" | "--help" | "help") => Ok(render_skills_usage(None)),
         Some(args) => Ok(render_skills_usage(Some(args))),
+    }
+}
+
+fn render_mcp_report_for(
+    loader: &ConfigLoader,
+    cwd: &Path,
+    args: Option<&str>,
+) -> Result<String, runtime::ConfigError> {
+    match normalize_optional_args(args) {
+        None | Some("list") => {
+            let runtime_config = loader.load()?;
+            Ok(render_mcp_summary_report(
+                cwd,
+                runtime_config.mcp().servers(),
+            ))
+        }
+        Some("-h" | "--help" | "help") => Ok(render_mcp_usage(None)),
+        Some("show") => Ok(render_mcp_usage(Some("show"))),
+        Some(args) if args.split_whitespace().next() == Some("show") => {
+            let mut parts = args.split_whitespace();
+            let _ = parts.next();
+            let Some(server_name) = parts.next() else {
+                return Ok(render_mcp_usage(Some("show")));
+            };
+            if parts.next().is_some() {
+                return Ok(render_mcp_usage(Some(args)));
+            }
+            let runtime_config = loader.load()?;
+            Ok(render_mcp_server_report(
+                cwd,
+                server_name,
+                runtime_config.mcp().get(server_name),
+            ))
+        }
+        Some(args) => Ok(render_mcp_usage(Some(args))),
     }
 }
 
@@ -1571,6 +1662,112 @@ fn render_skills_report(skills: &[SkillSummary]) -> String {
     lines.join("\n").trim_end().to_string()
 }
 
+fn render_mcp_summary_report(
+    cwd: &Path,
+    servers: &BTreeMap<String, ScopedMcpServerConfig>,
+) -> String {
+    let mut lines = vec![
+        "MCP".to_string(),
+        format!("  Working directory {}", cwd.display()),
+        format!("  Configured servers {}", servers.len()),
+    ];
+    if servers.is_empty() {
+        lines.push("  No MCP servers configured.".to_string());
+        return lines.join("\n");
+    }
+
+    lines.push(String::new());
+    for (name, server) in servers {
+        lines.push(format!(
+            "  {name:<16} {transport:<13} {scope:<7} {summary}",
+            transport = mcp_transport_label(&server.config),
+            scope = config_source_label(server.scope),
+            summary = mcp_server_summary(&server.config)
+        ));
+    }
+
+    lines.join("\n")
+}
+
+fn render_mcp_server_report(
+    cwd: &Path,
+    server_name: &str,
+    server: Option<&ScopedMcpServerConfig>,
+) -> String {
+    let Some(server) = server else {
+        return format!(
+            "MCP\n  Working directory {}\n  Result            server `{server_name}` is not configured",
+            cwd.display()
+        );
+    };
+
+    let mut lines = vec![
+        "MCP".to_string(),
+        format!("  Working directory {}", cwd.display()),
+        format!("  Name              {server_name}"),
+        format!("  Scope             {}", config_source_label(server.scope)),
+        format!(
+            "  Transport         {}",
+            mcp_transport_label(&server.config)
+        ),
+    ];
+
+    match &server.config {
+        McpServerConfig::Stdio(config) => {
+            lines.push(format!("  Command           {}", config.command));
+            lines.push(format!(
+                "  Args              {}",
+                format_optional_list(&config.args)
+            ));
+            lines.push(format!(
+                "  Env keys          {}",
+                format_optional_keys(config.env.keys().cloned().collect())
+            ));
+            lines.push(format!(
+                "  Tool timeout      {}",
+                config
+                    .tool_call_timeout_ms
+                    .map_or_else(|| "<default>".to_string(), |value| format!("{value} ms"))
+            ));
+        }
+        McpServerConfig::Sse(config) | McpServerConfig::Http(config) => {
+            lines.push(format!("  URL               {}", config.url));
+            lines.push(format!(
+                "  Header keys       {}",
+                format_optional_keys(config.headers.keys().cloned().collect())
+            ));
+            lines.push(format!(
+                "  Header helper     {}",
+                config.headers_helper.as_deref().unwrap_or("<none>")
+            ));
+            lines.push(format!(
+                "  OAuth             {}",
+                format_mcp_oauth(config.oauth.as_ref())
+            ));
+        }
+        McpServerConfig::Ws(config) => {
+            lines.push(format!("  URL               {}", config.url));
+            lines.push(format!(
+                "  Header keys       {}",
+                format_optional_keys(config.headers.keys().cloned().collect())
+            ));
+            lines.push(format!(
+                "  Header helper     {}",
+                config.headers_helper.as_deref().unwrap_or("<none>")
+            ));
+        }
+        McpServerConfig::Sdk(config) => {
+            lines.push(format!("  SDK name          {}", config.name));
+        }
+        McpServerConfig::ManagedProxy(config) => {
+            lines.push(format!("  URL               {}", config.url));
+            lines.push(format!("  Proxy id          {}", config.id));
+        }
+    }
+
+    lines.join("\n")
+}
+
 fn normalize_optional_args(args: Option<&str>) -> Option<&str> {
     args.map(str::trim).filter(|value| !value.is_empty())
 }
@@ -1599,6 +1796,95 @@ fn render_skills_usage(unexpected: Option<&str>) -> String {
         lines.push(format!("  Unexpected       {args}"));
     }
     lines.join("\n")
+}
+
+fn render_mcp_usage(unexpected: Option<&str>) -> String {
+    let mut lines = vec![
+        "MCP".to_string(),
+        "  Usage            /mcp [list|show <server>|help]".to_string(),
+        "  Direct CLI       claw mcp [list|show <server>|help]".to_string(),
+        "  Sources          .claw/settings.json, .claw/settings.local.json".to_string(),
+    ];
+    if let Some(args) = unexpected {
+        lines.push(format!("  Unexpected       {args}"));
+    }
+    lines.join("\n")
+}
+
+fn config_source_label(source: ConfigSource) -> &'static str {
+    match source {
+        ConfigSource::User => "user",
+        ConfigSource::Project => "project",
+        ConfigSource::Local => "local",
+    }
+}
+
+fn mcp_transport_label(config: &McpServerConfig) -> &'static str {
+    match config {
+        McpServerConfig::Stdio(_) => "stdio",
+        McpServerConfig::Sse(_) => "sse",
+        McpServerConfig::Http(_) => "http",
+        McpServerConfig::Ws(_) => "ws",
+        McpServerConfig::Sdk(_) => "sdk",
+        McpServerConfig::ManagedProxy(_) => "managed-proxy",
+    }
+}
+
+fn mcp_server_summary(config: &McpServerConfig) -> String {
+    match config {
+        McpServerConfig::Stdio(config) => {
+            if config.args.is_empty() {
+                config.command.clone()
+            } else {
+                format!("{} {}", config.command, config.args.join(" "))
+            }
+        }
+        McpServerConfig::Sse(config) | McpServerConfig::Http(config) => config.url.clone(),
+        McpServerConfig::Ws(config) => config.url.clone(),
+        McpServerConfig::Sdk(config) => config.name.clone(),
+        McpServerConfig::ManagedProxy(config) => format!("{} ({})", config.id, config.url),
+    }
+}
+
+fn format_optional_list(values: &[String]) -> String {
+    if values.is_empty() {
+        "<none>".to_string()
+    } else {
+        values.join(" ")
+    }
+}
+
+fn format_optional_keys(mut keys: Vec<String>) -> String {
+    if keys.is_empty() {
+        return "<none>".to_string();
+    }
+    keys.sort();
+    keys.join(", ")
+}
+
+fn format_mcp_oauth(oauth: Option<&McpOAuthConfig>) -> String {
+    let Some(oauth) = oauth else {
+        return "<none>".to_string();
+    };
+
+    let mut parts = Vec::new();
+    if let Some(client_id) = &oauth.client_id {
+        parts.push(format!("client_id={client_id}"));
+    }
+    if let Some(port) = oauth.callback_port {
+        parts.push(format!("callback_port={port}"));
+    }
+    if let Some(url) = &oauth.auth_server_metadata_url {
+        parts.push(format!("metadata_url={url}"));
+    }
+    if let Some(xaa) = oauth.xaa {
+        parts.push(format!("xaa={xaa}"));
+    }
+    if parts.is_empty() {
+        "enabled".to_string()
+    } else {
+        parts.join(", ")
+    }
 }
 
 #[must_use]
@@ -1653,6 +1939,7 @@ pub fn handle_slash_command(
         | SlashCommand::Cost
         | SlashCommand::Resume { .. }
         | SlashCommand::Config { .. }
+        | SlashCommand::Mcp { .. }
         | SlashCommand::Memory
         | SlashCommand::Init
         | SlashCommand::Diff
@@ -1676,7 +1963,9 @@ mod tests {
         validate_slash_command_input, DefinitionSource, SkillOrigin, SkillRoot, SlashCommand,
     };
     use plugins::{PluginKind, PluginManager, PluginManagerConfig, PluginMetadata, PluginSummary};
-    use runtime::{CompactionConfig, ContentBlock, ConversationMessage, MessageRole, Session};
+    use runtime::{
+        CompactionConfig, ConfigLoader, ContentBlock, ConversationMessage, MessageRole, Session,
+    };
     use std::fs;
     use std::path::{Path, PathBuf};
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -1878,6 +2167,20 @@ mod tests {
             }))
         );
         assert_eq!(
+            SlashCommand::parse("/mcp"),
+            Ok(Some(SlashCommand::Mcp {
+                action: None,
+                target: None
+            }))
+        );
+        assert_eq!(
+            SlashCommand::parse("/mcp show remote"),
+            Ok(Some(SlashCommand::Mcp {
+                action: Some("show".to_string()),
+                target: Some("remote".to_string())
+            }))
+        );
+        assert_eq!(
             SlashCommand::parse("/memory"),
             Ok(Some(SlashCommand::Memory))
         );
@@ -2020,6 +2323,18 @@ mod tests {
     }
 
     #[test]
+    fn rejects_invalid_mcp_arguments() {
+        let show_error = parse_error_message("/mcp show alpha beta");
+        assert!(show_error.contains("Unexpected arguments for /mcp show."));
+        assert!(show_error.contains("  Usage            /mcp show <server>"));
+
+        let action_error = parse_error_message("/mcp inspect alpha");
+        assert!(action_error
+            .contains("Unknown /mcp action 'inspect'. Use list, show <server>, or help."));
+        assert!(action_error.contains("  Usage            /mcp [list|show <server>|help]"));
+    }
+
+    #[test]
     fn renders_help_from_shared_specs() {
         let help = render_slash_command_help();
         assert!(help.contains("Start here        /status, /diff, /agents, /skills, /commit"));
@@ -2045,6 +2360,7 @@ mod tests {
         assert!(help.contains("/cost"));
         assert!(help.contains("/resume <session-path>"));
         assert!(help.contains("/config [env|hooks|model|plugins]"));
+        assert!(help.contains("/mcp [list|show <server>|help]"));
         assert!(help.contains("/memory"));
         assert!(help.contains("/init"));
         assert!(help.contains("/diff"));
@@ -2058,8 +2374,8 @@ mod tests {
         assert!(help.contains("aliases: /plugins, /marketplace"));
         assert!(help.contains("/agents [list|help]"));
         assert!(help.contains("/skills [list|help]"));
-        assert_eq!(slash_command_specs().len(), 26);
-        assert_eq!(resume_supported_slash_commands().len(), 14);
+        assert_eq!(slash_command_specs().len(), 27);
+        assert_eq!(resume_supported_slash_commands().len(), 15);
     }
 
     #[test]
@@ -2075,6 +2391,15 @@ mod tests {
         assert!(help.contains("Summary          Manage Claw Code plugins"));
         assert!(help.contains("Aliases          /plugins, /marketplace"));
         assert!(help.contains("Category         Workspace & git"));
+    }
+
+    #[test]
+    fn renders_per_command_help_detail_for_mcp() {
+        let help = render_slash_command_help_detail("mcp").expect("detail help should exist");
+        assert!(help.contains("/mcp"));
+        assert!(help.contains("Summary          Inspect configured MCP servers"));
+        assert!(help.contains("Category         Discovery & debugging"));
+        assert!(help.contains("Resume           Supported with --resume SESSION.jsonl"));
     }
 
     #[test]
@@ -2211,6 +2536,7 @@ mod tests {
         assert!(
             handle_slash_command("/config env", &session, CompactionConfig::default()).is_none()
         );
+        assert!(handle_slash_command("/mcp list", &session, CompactionConfig::default()).is_none());
         assert!(handle_slash_command("/diff", &session, CompactionConfig::default()).is_none());
         assert!(handle_slash_command("/version", &session, CompactionConfig::default()).is_none());
         assert!(
@@ -2382,6 +2708,98 @@ mod tests {
         assert!(skills_unexpected.contains("Unexpected       show help"));
 
         let _ = fs::remove_dir_all(cwd);
+    }
+
+    #[test]
+    fn mcp_usage_supports_help_and_unexpected_args() {
+        let cwd = temp_dir("mcp-usage");
+
+        let help = super::handle_mcp_slash_command(Some("help"), &cwd).expect("mcp help");
+        assert!(help.contains("Usage            /mcp [list|show <server>|help]"));
+        assert!(help.contains("Direct CLI       claw mcp [list|show <server>|help]"));
+
+        let unexpected =
+            super::handle_mcp_slash_command(Some("show alpha beta"), &cwd).expect("mcp usage");
+        assert!(unexpected.contains("Unexpected       show alpha beta"));
+
+        let _ = fs::remove_dir_all(cwd);
+    }
+
+    #[test]
+    fn renders_mcp_reports_from_loaded_config() {
+        let workspace = temp_dir("mcp-config-workspace");
+        let config_home = temp_dir("mcp-config-home");
+        fs::create_dir_all(workspace.join(".claw")).expect("workspace config dir");
+        fs::create_dir_all(&config_home).expect("config home");
+        fs::write(
+            workspace.join(".claw").join("settings.json"),
+            r#"{
+              "mcpServers": {
+                "alpha": {
+                  "command": "uvx",
+                  "args": ["alpha-server"],
+                  "env": {"ALPHA_TOKEN": "secret"},
+                  "toolCallTimeoutMs": 1200
+                },
+                "remote": {
+                  "type": "http",
+                  "url": "https://remote.example/mcp",
+                  "headers": {"Authorization": "Bearer secret"},
+                  "headersHelper": "./bin/headers",
+                  "oauth": {
+                    "clientId": "remote-client",
+                    "callbackPort": 7878
+                  }
+                }
+              }
+            }"#,
+        )
+        .expect("write settings");
+        fs::write(
+            workspace.join(".claw").join("settings.local.json"),
+            r#"{
+              "mcpServers": {
+                "remote": {
+                  "type": "ws",
+                  "url": "wss://remote.example/mcp"
+                }
+              }
+            }"#,
+        )
+        .expect("write local settings");
+
+        let loader = ConfigLoader::new(&workspace, &config_home);
+        let list = super::render_mcp_report_for(&loader, &workspace, None)
+            .expect("mcp list report should render");
+        assert!(list.contains("Configured servers 2"));
+        assert!(list.contains("alpha"));
+        assert!(list.contains("stdio"));
+        assert!(list.contains("project"));
+        assert!(list.contains("uvx alpha-server"));
+        assert!(list.contains("remote"));
+        assert!(list.contains("ws"));
+        assert!(list.contains("local"));
+        assert!(list.contains("wss://remote.example/mcp"));
+
+        let show = super::render_mcp_report_for(&loader, &workspace, Some("show alpha"))
+            .expect("mcp show report should render");
+        assert!(show.contains("Name              alpha"));
+        assert!(show.contains("Command           uvx"));
+        assert!(show.contains("Args              alpha-server"));
+        assert!(show.contains("Env keys          ALPHA_TOKEN"));
+        assert!(show.contains("Tool timeout      1200 ms"));
+
+        let remote = super::render_mcp_report_for(&loader, &workspace, Some("show remote"))
+            .expect("mcp show remote report should render");
+        assert!(remote.contains("Transport         ws"));
+        assert!(remote.contains("URL               wss://remote.example/mcp"));
+
+        let missing = super::render_mcp_report_for(&loader, &workspace, Some("show missing"))
+            .expect("missing report should render");
+        assert!(missing.contains("server `missing` is not configured"));
+
+        let _ = fs::remove_dir_all(workspace);
+        let _ = fs::remove_dir_all(config_home);
     }
 
     #[test]
