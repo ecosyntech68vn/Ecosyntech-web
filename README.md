@@ -1,19 +1,17 @@
 # EcoSynTech IoT Platform
 
-Hệ thống IoT toàn diện cho nông nghiệp thông minh - phiên bản nâng cấp v2.0.
+Hệ thống IoT toàn diện cho nông nghiệp thông minh - **Version 2.0.0**
 
 ## Tính năng chính
 
 ### Backend (Node.js + Express)
 - **REST API** đầy đủ với validation và error handling
 - **WebSocket** cho cập nhật thời gian thực
-- **SQLite Database** với persistence
+- **SQLite Database** với sql.js (pure JavaScript, không cần compile)
 - **JWT Authentication** và User Management
 - **Rate Limiting** và Security (Helmet, CORS)
 - **Webhook Integration** với signature verification
-- **MQTT Protocol** support
-- **Logging** với Winston
-- **Structured Architecture** (Controllers, Routes, Middleware)
+- **Structured Architecture** (Routes, Middleware, Config)
 
 ### Frontend (Vanilla JS)
 - **Dark/Light Mode** với system preference detection
@@ -21,49 +19,113 @@ Hệ thống IoT toàn diện cho nông nghiệp thông minh - phiên bản nân
 - **Push Notifications** cho cảnh báo
 - **Toast Notifications** cho UX tốt hơn
 - **Responsive Design** cho mobile
-- **PWA Support** với Service Worker
-- **Local Storage** cho offline data
 
 ### DevOps
 - **Docker** + **Docker Compose**
 - **CI/CD Pipeline** với GitHub Actions
-- **Environment Configuration**
+- **Auto-installer Script** cho Linux/Mac/Windows
 
-## Cài đặt
+---
 
-### Yêu cầu
-- Node.js >= 18.0.0
-- npm hoặc yarn
+## Cài đặt nhanh
 
-### Cài đặt nhanh
+### 🐧 Linux / macOS
 
 ```bash
-# Clone repository
+# Clone hoặc cd vào thư mục project
+cd Ecosyntech-web
+
+# Cấp quyền và chạy installer
+chmod +x install.sh
+./install.sh
+```
+
+Installer sẽ hỏi bạn:
+- **Port server** (mặc định: 3000)
+- **JWT Secret** (tự động tạo nếu để trống)
+- **Môi trường** (development/production)
+- **CORS Origin**
+- **Tài khoản admin**
+
+### 🪟 Windows
+
+```batch
+# Clone hoặc cd vào thư mục project
+cd Ecosyntech-web
+
+# Chạy installer (cần chạy với quyền Administrator)
+install.bat
+```
+
+### 📦 Manual Installation
+
+```bash
+# 1. Clone repository
 git clone https://github.com/ecosyntech68vn/Ecosyntech-web.git
 cd Ecosyntech-web
 
-# Cài đặt dependencies
+# 2. Cài đặt dependencies
 npm install
 
-# Chạy server (Development)
-npm run dev
+# 3. Tạo file .env
+cp .env.example .env
+# Chỉnh sửa .env theo nhu cầu
 
-# Hoặc chạy production
+# 4. Khởi động server
 npm start
 ```
 
-### Sử dụng Docker
+---
 
-```bash
-# Build và chạy với Docker Compose
-docker-compose up -d
+## Cấu hình
 
-# Xem logs
-docker-compose logs -f
+### Environment Variables
 
-# Stop
-docker-compose down
+Tạo file `.env` trong thư mục gốc:
+
+```env
+# Server
+PORT=3000
+NODE_ENV=development
+
+# Database
+DB_PATH=./data/ecosyntech.db
+
+# JWT Authentication
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_EXPIRES_IN=7d
+
+# CORS
+CORS_ORIGIN=*
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Webhooks
+WEBHOOK_SECRET=your-webhook-secret
 ```
+
+---
+
+## Chạy hệ thống
+
+### Development Mode
+```bash
+npm run dev
+```
+
+### Production Mode
+```bash
+npm start
+```
+
+### Với Docker
+```bash
+docker-compose up -d
+```
+
+---
 
 ## API Endpoints
 
@@ -120,10 +182,10 @@ DELETE /api/alerts/:id             - Xóa alert
 
 ### System
 ```
-GET /api/health    - Health check
-GET /api/stats      - System statistics
-POST /api/export    - Export all data
-POST /api/import    - Import data
+GET  /api/health    - Health check
+GET  /api/stats      - System statistics
+POST /api/export     - Export all data
+POST /api/import     - Import data
 ```
 
 ### Webhooks
@@ -147,39 +209,9 @@ Server Messages:
 - { type: "sensor-update", data: {...} }
 - { type: "alert", action: "created", data: {...} }
 - { type: "device-update", data: {...} }
-- { type: "rule-triggered", data: {...} }
-- { type: "history", action: "added", data: {...} }
 ```
 
-## Cấu hình
-
-Tạo file `.env` hoặc sử dụng các biến môi trường:
-
-```env
-PORT=3000
-NODE_ENV=development
-LOG_LEVEL=info
-
-# Database
-DB_PATH=./data/ecosyntech.db
-
-# JWT
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=7d
-
-# MQTT
-MQTT_BROKER_URL=wss://broker.hivemq.com:8884/mqtt
-
-# CORS
-CORS_ORIGIN=*
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# Webhooks
-WEBHOOK_SECRET=your-webhook-secret
-```
+---
 
 ## Kiến trúc
 
@@ -190,7 +222,7 @@ ecosyntech-web/
 │   ├── config/           # Configuration
 │   │   ├── index.js      # Environment config
 │   │   ├── logger.js    # Winston logger
-│   │   └── database.js   # SQLite setup
+│   │   └── database.js   # SQLite setup (sql.js)
 │   ├── middleware/        # Express middleware
 │   │   ├── auth.js       # JWT authentication
 │   │   ├── errorHandler.js
@@ -207,22 +239,28 @@ ecosyntech-web/
 │   │   └── stats.js
 │   └── websocket/       # WebSocket handlers
 │       └── index.js
-├── data/                 # SQLite database
-├── logs/                 # Application logs
+├── data/                 # SQLite database (auto-created)
+├── logs/                 # Application logs (auto-created)
+├── install.sh           # Linux/Mac auto-installer
+├── install.bat          # Windows auto-installer
 ├── Dockerfile
 ├── docker-compose.yml
 └── .env.example
 ```
 
-## Phát triển
+---
+
+## Scripts
 
 ```bash
-# Chạy tests
-npm test
-
-# Chạy linter
-npm run lint
+npm start       # Chạy server production
+npm run dev     # Chạy development mode (với nodemon)
+npm run lint    # Kiểm tra code style
+npm test        # Chạy tests
+npm run build   # Kiểm tra syntax
 ```
+
+---
 
 ## License
 
