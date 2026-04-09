@@ -1,0 +1,94 @@
+# PRO TRADING CHECKLIST
+# =========================================
+# Created: 2024 | For: GBPUSD H1 | Risk: 2%
+# =========================================
+
+## PRE-MARKET (5-10 phút)
+
+### 1. Market Analysis
+[ ] Check D1 timeframe - Identify trend direction
+[ ] Check H1 timeframe - Confirm entry timing
+[ ] Check for key levels (S/R, Supply/Demand zones)
+[ ] Identify market phase (Trending/Ranging)
+
+### 2. Session Analysis
+[ ] Current session: ASIA / LONDON / NY / OVERLAP
+[ ] Session volatility: LOW / MEDIUM / HIGH
+[ ] Major news: Check calendar
+
+### 3. Confluence Check
+[ ] EMA alignment (8 > 21 = Bullish, 8 < 21 = Bearish)
+[ ] RSI zone (<30 oversold, >70 overbought)
+[ ] ADX > 25 for trend strength
+[ ] Support/Resistance level proximity
+
+## ENTRY RULES
+
+### Buy Setup (All must match)
+[ ] Trend UP (EMA 8 > EMA 21 on D1 or H1)
+[ ] Price at support zone or pullback
+[ ] RSI < 50 (not overbought)
+[ ] Confluence score >= 2/3
+
+### Sell Setup (All must match)
+[ ] Trend DOWN (EMA 8 < EMA 21 on D1 or H1)
+[ ] Price at resistance zone or pullback
+[ ] RSI > 50 (not oversold)
+[ ] Confluence score >= 2/3
+
+## RISK MANAGEMENT
+
+### Position Sizing
+[ ] Max Risk: 2% per trade
+[ ] Lot = (Balance × 2%) / SL_Distance
+[ ] Min Lot: 0.01 | Max Lot: According to balance
+
+### Stop Loss
+[ ] ATR-based SL: 2 × ATR
+[ ] OR at nearest support/resistance
+[ ] Min SL: 50 points
+
+### Take Profit
+[ ] TP = Entry + (SL × 2) minimum
+[ ] Trail SL after +2R profit
+[ ] Partial close at +3R (50% position)
+
+## FILTER RULES
+
+### Time Filter
+[ ] Trade only: 07:00 - 22:00 server time
+[ ] Avoid: 12:00-13:00 (Lunch)
+[ ] Avoid: Friday afternoon
+
+### Market Filter
+[ ] Spread max: 25 points
+[ ] Min ATR: 100 points
+[ ] Not during high-impact news
+[ ] Not in extreme volatility
+
+## POST-TRADE
+
+### After Entry
+[ ] Log trade in journal
+[ ] Monitor for 1-4 hours
+[ ] Move to breakeven at +1.5R
+[ ] Trail at +2R
+
+### Exit Rules
+[ ] TP hit: Full exit, log result
+[ ] SL hit: Full exit, log result
+[ ] Time-based: Exit if > 24 hours no TP/SL
+
+## WEEKLY REVIEW
+
+[ ] Review all trades (win/loss ratio)
+[ ] Calculate P&L
+[ ] Review drawdown
+[ ] Adjust if needed
+
+## MONTHLY REVIEW
+
+[ ] Calculate total return %
+[ ] Review strategy performance
+[ ] Adjust risk if needed
+[ ] Backup journal data
