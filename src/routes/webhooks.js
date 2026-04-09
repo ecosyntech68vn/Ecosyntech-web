@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getDatabase } = require('../config/database');
+const { getAll, getOne, runQuery } = require('../config/database');
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../config/logger');
 const crypto = require('crypto');
@@ -30,15 +30,14 @@ router.post('/sensor-alert', verifyWebhookSignature, asyncHandler(async (req, re
   
   logger.info(`[Webhook] Sensor Alert: ${sensor} = ${value} (${severity})`);
   
-  const db = getDatabase();
   const id = `alert-${Date.now()}`;
   
-  db.prepare(`
-    INSERT INTO alerts (id, type, severity, sensor, value, message, timestamp)
-    VALUES (?, 'webhook', ?, ?, ?, ?, CURRENT_TIMESTAMP)
-  `).run(severity || 'warning', sensor, value, message || `Sensor ${sensor} alert`);
+  runQuery(
+    'INSERT INTO alerts (id, type, severity, sensor, value, message, timestamp) VALUES (?, ?, ?, ?, ?, ?, datetime("now"))',
+    [id, 'webhook', severity || 'warning', sensor, value, message || `Sensor ${sensor} alert`]
+  );
   
-  const alert = db.prepare('SELECT * FROM alerts WHERE id = ?').get(id);
+  const alert = getOne('SELECT * FROM alerts WHERE id = ?', [id]);
   
   res.json({ success: true, webhookId: id, alert });
 }));
@@ -48,15 +47,13 @@ router.post('/device-status', verifyWebhookSignature, asyncHandler(async (req, r
   
   logger.info(`[Webhook] Device Status: ${deviceId} is ${status}`);
   
-  const db = getDatabase();
-  const device = db.prepare('SELECT * FROM devices WHERE id = ?').get(deviceId);
+  const device = getOne('SELECT * FROM devices WHERE id = ?', [deviceId]);
   
   if (device) {
-    db.prepare(`
-      UPDATE devices 
-      SET status = ?, last_seen = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).run(status, deviceId);
+    runQuery(
+      'UPDATE devices SET status = ?, last_seen = datetime("now"), updated_at = datetime("now") WHERE id = ?',
+      [status, deviceId]
+    );
     
     const historyEntry = {
       id: `history-${Date.now()}`,
@@ -66,10 +63,10 @@ router.post('/device-status', verifyWebhookSignature, asyncHandler(async (req, r
       timestamp: new Date().toISOString()
     };
     
-    db.prepare(`
-      INSERT INTO history (id, action, trigger, status, timestamp)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(historyEntry.id, historyEntry.action, historyEntry.trigger, historyEntry.status, historyEntry.timestamp);
+    runQuery(
+      'INSERT INTO history (id, action, trigger, status, timestamp) VALUES (?, ?, ?, ?, ?)',
+      [historyEntry.id, historyEntry.action, historyEntry.trigger, historyEntry.status, historyEntry.timestamp]
+    );
   }
   
   res.json({ success: true, deviceId, status });
@@ -80,14 +77,11 @@ router.post('/rule-triggered', verifyWebhookSignature, asyncHandler(async (req, 
   
   logger.info(`[Webhook] Rule Triggered: ${ruleId} - ${action}`);
   
-  const db = getDatabase();
-  
   if (ruleId) {
-    db.prepare(`
-      UPDATE rules 
-      SET trigger_count = trigger_count + 1, last_triggered = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).run(ruleId);
+    runQuery(
+      'UPDATE rules SET trigger_count = trigger_count + 1, last_triggered = datetime("now") WHERE id = ?',
+      [ruleId]
+    );
     
     const historyEntry = {
       id: `history-${Date.now()}`,
@@ -97,10 +91,10 @@ router.post('/rule-triggered', verifyWebhookSignature, asyncHandler(async (req, 
       timestamp: new Date().toISOString()
     };
     
-    db.prepare(`
-      INSERT INTO history (id, action, trigger, status, timestamp)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(historyEntry.id, historyEntry.action, historyEntry.trigger, historyEntry.status, historyEntry.timestamp);
+    runQuery(
+      'INSERT INTO history (id, action, trigger, status, timestamp) VALUES (?, ?, ?, ?, ?)',
+      [historyEntry.id, historyEntry.action, historyEntry.trigger, historyEntry.status, historyEntry.timestamp]
+    );
   }
   
   res.json({ success: true, ruleId, action });
@@ -111,8 +105,6 @@ router.post('/schedule-run', verifyWebhookSignature, asyncHandler(async (req, re
   
   logger.info(`[Webhook] Schedule Run: ${name} (${scheduleId})`);
   
-  const db = getDatabase();
-  
   const historyEntry = {
     id: `history-${Date.now()}`,
     action: `Schedule executed: ${name || scheduleId}`,
@@ -121,10 +113,10 @@ router.post('/schedule-run', verifyWebhookSignature, asyncHandler(async (req, re
     timestamp: new Date().toISOString()
   };
   
-  db.prepare(`
-    INSERT INTO history (id, action, trigger, status, timestamp)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(historyEntry.id, historyEntry.action, historyEntry.trigger, historyEntry.status, historyEntry.timestamp);
+  runQuery(
+    'INSERT INTO history (id, action, trigger, status, timestamp) VALUES (?, ?, ?, ?, ?)',
+    [historyEntry.id, historyEntry.action, historyEntry.trigger, historyEntry.status, historyEntry.timestamp]
+  );
   
   res.json({ success: true, scheduleId, zones });
 }));
@@ -134,15 +126,13 @@ router.post('/sensor-data', verifyWebhookSignature, asyncHandler(async (req, res
   
   logger.info(`[Webhook] Sensor Data: ${type} = ${value}`);
   
-  const db = getDatabase();
-  const sensor = db.prepare('SELECT * FROM sensors WHERE type = ?').get(type);
+  const sensor = getOne('SELECT * FROM sensors WHERE type = ?', [type]);
   
   if (sensor) {
-    db.prepare(`
-      UPDATE sensors 
-      SET value = ?, timestamp = ?
-      WHERE type = ?
-    `).run(value, timestamp || new Date().toISOString(), type);
+    runQuery(
+      'UPDATE sensors SET value = ?, timestamp = ? WHERE type = ?',
+      [value, timestamp || new Date().toISOString(), type]
+    );
   }
   
   res.json({ success: true, type, value });

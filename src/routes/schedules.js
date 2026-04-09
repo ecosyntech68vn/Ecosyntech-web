@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getDatabase } = require('../config/database');
+const { getAll, getOne, runQuery } = require('../config/database');
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../config/logger');
 const { broadcast } = require('../websocket');
 
 router.get('/', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const schedules = db.prepare('SELECT * FROM schedules ORDER BY time').all();
+  const schedules = getAll('SELECT * FROM schedules ORDER BY time');
   
   const result = schedules.map(schedule => ({
     id: schedule.id,
@@ -23,8 +22,7 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const schedule = db.prepare('SELECT * FROM schedules WHERE id = ?').get(req.params.id);
+  const schedule = getOne('SELECT * FROM schedules WHERE id = ?', [req.params.id]);
   
   if (!schedule) {
     return res.status(404).json({ error: 'Schedule not found' });
@@ -42,7 +40,6 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 router.post('/', asyncHandler(async (req, res) => {
-  const db = getDatabase();
   const { name, time, duration, zones, days } = req.body;
   
   if (!name || !time) {
@@ -51,19 +48,19 @@ router.post('/', asyncHandler(async (req, res) => {
   
   const id = `sched-${Date.now()}`;
   
-  db.prepare(`
-    INSERT INTO schedules (id, name, time, duration, zones, enabled, days)
-    VALUES (?, ?, ?, ?, ?, 1, ?)
-  `).run(
-    id,
-    name,
-    time,
-    duration || 60,
-    JSON.stringify(zones || ['all']),
-    JSON.stringify(days || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+  runQuery(
+    'INSERT INTO schedules (id, name, time, duration, zones, enabled, days) VALUES (?, ?, ?, ?, ?, 1, ?)',
+    [
+      id,
+      name,
+      time,
+      duration || 60,
+      JSON.stringify(zones || ['all']),
+      JSON.stringify(days || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+    ]
   );
   
-  const schedule = db.prepare('SELECT * FROM schedules WHERE id = ?').get(id);
+  const schedule = getOne('SELECT * FROM schedules WHERE id = ?', [id]);
   
   logger.info(`Schedule created: ${name} (${id})`);
   broadcast({ type: 'schedule', action: 'created', data: schedule });
@@ -80,8 +77,7 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 router.put('/:id', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const schedule = db.prepare('SELECT * FROM schedules WHERE id = ?').get(req.params.id);
+  const schedule = getOne('SELECT * FROM schedules WHERE id = ?', [req.params.id]);
   
   if (!schedule) {
     return res.status(404).json({ error: 'Schedule not found' });
@@ -89,21 +85,20 @@ router.put('/:id', asyncHandler(async (req, res) => {
   
   const { name, time, duration, zones, enabled, days } = req.body;
   
-  db.prepare(`
-    UPDATE schedules 
-    SET name = ?, time = ?, duration = ?, zones = ?, enabled = ?, days = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `).run(
-    name || schedule.name,
-    time || schedule.time,
-    duration !== undefined ? duration : schedule.duration,
-    zones ? JSON.stringify(zones) : schedule.zones,
-    enabled !== undefined ? (enabled ? 1 : 0) : schedule.enabled,
-    days ? JSON.stringify(days) : schedule.days,
-    req.params.id
+  runQuery(
+    'UPDATE schedules SET name = ?, time = ?, duration = ?, zones = ?, enabled = ?, days = ?, updated_at = datetime("now") WHERE id = ?',
+    [
+      name || schedule.name,
+      time || schedule.time,
+      duration !== undefined ? duration : schedule.duration,
+      zones ? JSON.stringify(zones) : schedule.zones,
+      enabled !== undefined ? (enabled ? 1 : 0) : schedule.enabled,
+      days ? JSON.stringify(days) : schedule.days,
+      req.params.id
+    ]
   );
   
-  const updatedSchedule = db.prepare('SELECT * FROM schedules WHERE id = ?').get(req.params.id);
+  const updatedSchedule = getOne('SELECT * FROM schedules WHERE id = ?', [req.params.id]);
   
   logger.info(`Schedule updated: ${req.params.id}`);
   broadcast({ type: 'schedule', action: 'updated', data: updatedSchedule });
@@ -120,14 +115,13 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 router.delete('/:id', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const schedule = db.prepare('SELECT * FROM schedules WHERE id = ?').get(req.params.id);
+  const schedule = getOne('SELECT * FROM schedules WHERE id = ?', [req.params.id]);
   
   if (!schedule) {
     return res.status(404).json({ error: 'Schedule not found' });
   }
   
-  db.prepare('DELETE FROM schedules WHERE id = ?').run(req.params.id);
+  runQuery('DELETE FROM schedules WHERE id = ?', [req.params.id]);
   
   logger.info(`Schedule deleted: ${req.params.id}`);
   broadcast({ type: 'schedule', action: 'deleted', data: { id: req.params.id } });
@@ -136,8 +130,7 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 }));
 
 router.post('/:id/toggle', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const schedule = db.prepare('SELECT * FROM schedules WHERE id = ?').get(req.params.id);
+  const schedule = getOne('SELECT * FROM schedules WHERE id = ?', [req.params.id]);
   
   if (!schedule) {
     return res.status(404).json({ error: 'Schedule not found' });
@@ -145,7 +138,7 @@ router.post('/:id/toggle', asyncHandler(async (req, res) => {
   
   const newEnabled = schedule.enabled ? 0 : 1;
   
-  db.prepare('UPDATE schedules SET enabled = ? WHERE id = ?').run(newEnabled, req.params.id);
+  runQuery('UPDATE schedules SET enabled = ? WHERE id = ?', [newEnabled, req.params.id]);
   
   logger.info(`Schedule ${req.params.id} ${newEnabled ? 'enabled' : 'disabled'}`);
   broadcast({ type: 'schedule', action: 'toggled', data: { id: req.params.id, enabled: !!newEnabled } });

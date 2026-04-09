@@ -1,31 +1,51 @@
-const Database = require('better-sqlite3');
+const initSqlJs = require('sql.js');
 const path = require('path');
 const fs = require('fs');
 const config = require('./index');
 const logger = require('./logger');
 
 let db = null;
+let SQL = null;
 
-function initDatabase() {
+async function initDatabase() {
   const dbDir = path.dirname(config.database.path);
   
   if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
-  db = new Database(config.database.path);
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
+  SQL = await initSqlJs();
+
+  if (fs.existsSync(config.database.path)) {
+    const fileBuffer = fs.readFileSync(config.database.path);
+    db = new SQL.Database(fileBuffer);
+    logger.info('Loaded existing database');
+  } else {
+    db = new SQL.Database();
+    logger.info('Created new database');
+  }
 
   createTables();
   seedInitialData();
+  saveDatabase();
   
   logger.info('Database initialized successfully');
   return db;
 }
 
+function saveDatabase() {
+  if (!db) return;
+  try {
+    const data = db.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(config.database.path, buffer);
+  } catch (err) {
+    logger.error('Failed to save database:', err);
+  }
+}
+
 function createTables() {
-  db.exec(`
+  db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       email TEXT UNIQUE NOT NULL,
@@ -34,8 +54,10 @@ function createTables() {
       role TEXT DEFAULT 'user',
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
+    )
+  `);
 
+  db.run(`
     CREATE TABLE IF NOT EXISTS devices (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -46,8 +68,10 @@ function createTables() {
       last_seen TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
+    )
+  `);
 
+  db.run(`
     CREATE TABLE IF NOT EXISTS sensors (
       id TEXT PRIMARY KEY,
       type TEXT UNIQUE NOT NULL,
@@ -56,8 +80,10 @@ function createTables() {
       min_value REAL,
       max_value REAL,
       timestamp TEXT DEFAULT CURRENT_TIMESTAMP
-    );
+    )
+  `);
 
+  db.run(`
     CREATE TABLE IF NOT EXISTS rules (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -70,8 +96,10 @@ function createTables() {
       last_triggered TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
+    )
+  `);
 
+  db.run(`
     CREATE TABLE IF NOT EXISTS schedules (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -82,16 +110,20 @@ function createTables() {
       days TEXT DEFAULT '[]',
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
+    )
+  `);
 
+  db.run(`
     CREATE TABLE IF NOT EXISTS history (
       id TEXT PRIMARY KEY,
       action TEXT NOT NULL,
       trigger TEXT,
       status TEXT DEFAULT 'success',
       timestamp TEXT DEFAULT CURRENT_TIMESTAMP
-    );
+    )
+  `);
 
+  db.run(`
     CREATE TABLE IF NOT EXISTS alerts (
       id TEXT PRIMARY KEY,
       type TEXT NOT NULL,
@@ -102,30 +134,24 @@ function createTables() {
       acknowledged INTEGER DEFAULT 0,
       acknowledged_at TEXT,
       timestamp TEXT DEFAULT CURRENT_TIMESTAMP
-    );
+    )
+  `);
 
+  db.run(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_sensors_type ON sensors(type);
-    CREATE INDEX IF NOT EXISTS idx_history_timestamp ON history(timestamp DESC);
-    CREATE INDEX IF NOT EXISTS idx_alerts_timestamp ON alerts(timestamp DESC);
-    CREATE INDEX IF NOT EXISTS idx_alerts_acknowledged ON alerts(acknowledged);
+    )
   `);
+
+  logger.info('Database tables created');
 }
 
 function seedInitialData() {
-  const deviceCount = db.prepare('SELECT COUNT(*) as count FROM devices').get();
+  const deviceCount = db.exec('SELECT COUNT(*) as count FROM devices')[0]?.values[0][0] || 0;
   
-  if (deviceCount.count === 0) {
-    const insertDevice = db.prepare(`
-      INSERT INTO devices (id, name, type, zone, status, config, last_seen)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-
+  if (deviceCount === 0) {
     const devices = [
       ['device-001', 'SoilSense-001', 'sensor', 'zone1', 'online', JSON.stringify({ thresholdLow: 30, thresholdCritical: 20 }), new Date().toISOString()],
       ['device-002', 'AirPulse-002', 'sensor', 'zone2', 'online', JSON.stringify({ thresholdLow: 60, thresholdCritical: 90 }), new Date().toISOString()],
@@ -135,22 +161,16 @@ function seedInitialData() {
       ['device-006', 'GrowLight-01', 'light', 'zone1', 'online', JSON.stringify({ brightness: 80 }), new Date().toISOString()]
     ];
 
-    const insertMany = db.transaction((devices) => {
-      for (const device of devices) {
-        insertDevice.run(...device);
-      }
+    const stmt = db.prepare('INSERT INTO devices (id, name, type, zone, status, config, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    devices.forEach(device => {
+      stmt.run(device);
     });
-    insertMany(devices);
+    stmt.free();
   }
 
-  const sensorCount = db.prepare('SELECT COUNT(*) as count FROM sensors').get();
+  const sensorCount = db.exec('SELECT COUNT(*) as count FROM sensors')[0]?.values[0][0] || 0;
   
-  if (sensorCount.count === 0) {
-    const insertSensor = db.prepare(`
-      INSERT INTO sensors (id, type, value, unit, min_value, max_value)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
-
+  if (sensorCount === 0) {
     const sensors = [
       ['sensor-temp', 'temperature', 28.5, '°C', 18, 32],
       ['sensor-humid', 'humidity', 72, '%', 60, 85],
@@ -162,57 +182,46 @@ function seedInitialData() {
       ['sensor-water', 'water', 78, '%', 20, 100]
     ];
 
-    const insertMany = db.transaction((sensors) => {
-      for (const sensor of sensors) {
-        insertSensor.run(...sensor);
-      }
+    const stmt = db.prepare('INSERT INTO sensors (id, type, value, unit, min_value, max_value) VALUES (?, ?, ?, ?, ?, ?)');
+    sensors.forEach(sensor => {
+      stmt.run(sensor);
     });
-    insertMany(sensors);
+    stmt.free();
   }
 
-  const ruleCount = db.prepare('SELECT COUNT(*) as count FROM rules').get();
+  const ruleCount = db.exec('SELECT COUNT(*) as count FROM rules')[0]?.values[0][0] || 0;
   
-  if (ruleCount.count === 0) {
-    const insertRule = db.prepare(`
-      INSERT INTO rules (id, name, description, enabled, condition, action)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
-
+  if (ruleCount === 0) {
     const rules = [
-      ['rule-1', 'Tưới khi đất khô', 'Tự động tưới khi độ ẩm đất xuống dưới 35%', 1, JSON.stringify({ sensor: 'soil', operator: '<', value: 35 }), JSON.stringify({ type: 'valve_open', target: 'zone1' }))],
-      ['rule-2', 'Bật quạt khi nóng', 'Kích hoạt quạt thông gió khi nhiệt độ trên 30°C', 1, JSON.stringify({ sensor: 'temperature', operator: '>', value: 30 }), JSON.stringify({ type: 'fan_on', target: 'all' }))],
-      ['rule-3', 'Cảnh báo nước thấp', 'Thông báo khi mực nước bồn dưới 25%', 1, JSON.stringify({ sensor: 'water', operator: '<', value: 25 }), JSON.stringify({ type: 'alert', target: 'all' }))]
+      ['rule-1', 'Tưới khi đất khô', 'Tự động tưới khi độ ẩm đất xuống dưới 35%', 1, JSON.stringify({ sensor: 'soil', operator: '<', value: 35 }), JSON.stringify({ type: 'valve_open', target: 'zone1' })],
+      ['rule-2', 'Bật quạt khi nóng', 'Kích hoạt quạt thông gió khi nhiệt độ trên 30°C', 1, JSON.stringify({ sensor: 'temperature', operator: '>', value: 30 }), JSON.stringify({ type: 'fan_on', target: 'all' })],
+      ['rule-3', 'Cảnh báo nước thấp', 'Thông báo khi mực nước bồn dưới 25%', 1, JSON.stringify({ sensor: 'water', operator: '<', value: 25 }), JSON.stringify({ type: 'alert', target: 'all' })]
     ];
 
-    const insertMany = db.transaction((rules) => {
-      for (const rule of rules) {
-        insertRule.run(...rule);
-      }
+    const stmt = db.prepare('INSERT INTO rules (id, name, description, enabled, condition, action) VALUES (?, ?, ?, ?, ?, ?)');
+    rules.forEach(rule => {
+      stmt.run(rule);
     });
-    insertMany(rules);
+    stmt.free();
   }
 
-  const scheduleCount = db.prepare('SELECT COUNT(*) as count FROM schedules').get();
+  const scheduleCount = db.exec('SELECT COUNT(*) as count FROM schedules')[0]?.values[0][0] || 0;
   
-  if (scheduleCount.count === 0) {
-    const insertSchedule = db.prepare(`
-      INSERT INTO schedules (id, name, time, duration, zones, enabled, days)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-
+  if (scheduleCount === 0) {
     const schedules = [
-      ['sched-1', 'Lịch tưới sáng', '06:00', 60, JSON.stringify(['zone1', 'zone2', 'zone3']), 1, JSON.stringify(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']))],
-      ['sched-2', 'Lịch tưới chiều', '17:00', 60, JSON.stringify(['zone4', 'zone5']), 1, JSON.stringify(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']))],
-      ['sched-3', 'Bón phân định kỳ', '08:00', 45, JSON.stringify(['all']), 0, JSON.stringify(['Tue', 'Fri']))
+      ['sched-1', 'Lịch tưới sáng', '06:00', 60, JSON.stringify(['zone1', 'zone2', 'zone3']), 1, JSON.stringify(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])],
+      ['sched-2', 'Lịch tưới chiều', '17:00', 60, JSON.stringify(['zone4', 'zone5']), 1, JSON.stringify(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])],
+      ['sched-3', 'Bón phân định kỳ', '08:00', 45, JSON.stringify(['all']), 0, JSON.stringify(['Tue', 'Fri'])]
     ];
 
-    const insertMany = db.transaction((schedules) => {
-      for (const schedule of schedules) {
-        insertSchedule.run(...schedule);
-      }
+    const stmt = db.prepare('INSERT INTO schedules (id, name, time, duration, zones, enabled, days) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    schedules.forEach(schedule => {
+      stmt.run(schedule);
     });
-    insertMany(schedules);
+    stmt.free();
   }
+
+  saveDatabase();
 }
 
 function getDatabase() {
@@ -222,8 +231,56 @@ function getDatabase() {
   return db;
 }
 
+function runQuery(sql, params = []) {
+  if (!db) throw new Error('Database not initialized');
+  try {
+    db.run(sql, params);
+    saveDatabase();
+    return { changes: db.getRowsModified() };
+  } catch (err) {
+    logger.error('Query error:', err);
+    throw err;
+  }
+}
+
+function getOne(sql, params = []) {
+  if (!db) throw new Error('Database not initialized');
+  try {
+    const stmt = db.prepare(sql);
+    stmt.bind(params);
+    if (stmt.step()) {
+      const row = stmt.getAsObject();
+      stmt.free();
+      return row;
+    }
+    stmt.free();
+    return null;
+  } catch (err) {
+    logger.error('Query error:', err);
+    throw err;
+  }
+}
+
+function getAll(sql, params = []) {
+  if (!db) throw new Error('Database not initialized');
+  try {
+    const stmt = db.prepare(sql);
+    stmt.bind(params);
+    const results = [];
+    while (stmt.step()) {
+      results.push(stmt.getAsObject());
+    }
+    stmt.free();
+    return results;
+  } catch (err) {
+    logger.error('Query error:', err);
+    throw err;
+  }
+}
+
 function closeDatabase() {
   if (db) {
+    saveDatabase();
     db.close();
     db = null;
     logger.info('Database connection closed');
@@ -233,5 +290,9 @@ function closeDatabase() {
 module.exports = {
   initDatabase,
   getDatabase,
-  closeDatabase
+  closeDatabase,
+  runQuery,
+  getOne,
+  getAll,
+  saveDatabase
 };

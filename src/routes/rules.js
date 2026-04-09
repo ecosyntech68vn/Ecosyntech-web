@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getDatabase } = require('../config/database');
+const { getAll, getOne, runQuery } = require('../config/database');
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../config/logger');
 const { broadcast } = require('../websocket');
 
 router.get('/', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const rules = db.prepare('SELECT * FROM rules ORDER BY name').all();
+  const rules = getAll('SELECT * FROM rules ORDER BY name');
   
   const result = rules.map(rule => ({
     id: rule.id,
@@ -25,8 +24,7 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const rule = db.prepare('SELECT * FROM rules WHERE id = ?').get(req.params.id);
+  const rule = getOne('SELECT * FROM rules WHERE id = ?', [req.params.id]);
   
   if (!rule) {
     return res.status(404).json({ error: 'Rule not found' });
@@ -46,7 +44,6 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 router.post('/', asyncHandler(async (req, res) => {
-  const db = getDatabase();
   const { name, description, condition, action, cooldownMinutes } = req.body;
   
   if (!name || !condition || !action) {
@@ -55,12 +52,12 @@ router.post('/', asyncHandler(async (req, res) => {
   
   const id = `rule-${Date.now()}`;
   
-  db.prepare(`
-    INSERT INTO rules (id, name, description, enabled, condition, action, cooldown_minutes)
-    VALUES (?, ?, ?, 1, ?, ?, ?)
-  `).run(id, name, description || '', JSON.stringify(condition), JSON.stringify(action), cooldownMinutes || 30);
+  runQuery(
+    'INSERT INTO rules (id, name, description, enabled, condition, action, cooldown_minutes) VALUES (?, ?, ?, 1, ?, ?, ?)',
+    [id, name, description || '', JSON.stringify(condition), JSON.stringify(action), cooldownMinutes || 30]
+  );
   
-  const rule = db.prepare('SELECT * FROM rules WHERE id = ?').get(id);
+  const rule = getOne('SELECT * FROM rules WHERE id = ?', [id]);
   
   logger.info(`Rule created: ${name} (${id})`);
   broadcast({ type: 'rule', action: 'created', data: rule });
@@ -79,8 +76,7 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 router.put('/:id', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const rule = db.prepare('SELECT * FROM rules WHERE id = ?').get(req.params.id);
+  const rule = getOne('SELECT * FROM rules WHERE id = ?', [req.params.id]);
   
   if (!rule) {
     return res.status(404).json({ error: 'Rule not found' });
@@ -88,21 +84,20 @@ router.put('/:id', asyncHandler(async (req, res) => {
   
   const { name, description, enabled, condition, action, cooldownMinutes } = req.body;
   
-  db.prepare(`
-    UPDATE rules 
-    SET name = ?, description = ?, enabled = ?, condition = ?, action = ?, cooldown_minutes = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `).run(
-    name || rule.name,
-    description !== undefined ? description : rule.description,
-    enabled !== undefined ? (enabled ? 1 : 0) : rule.enabled,
-    condition ? JSON.stringify(condition) : rule.condition,
-    action ? JSON.stringify(action) : rule.action,
-    cooldownMinutes || rule.cooldown_minutes,
-    req.params.id
+  runQuery(
+    'UPDATE rules SET name = ?, description = ?, enabled = ?, condition = ?, action = ?, cooldown_minutes = ?, updated_at = datetime("now") WHERE id = ?',
+    [
+      name || rule.name,
+      description !== undefined ? description : rule.description,
+      enabled !== undefined ? (enabled ? 1 : 0) : rule.enabled,
+      condition ? JSON.stringify(condition) : rule.condition,
+      action ? JSON.stringify(action) : rule.action,
+      cooldownMinutes || rule.cooldown_minutes,
+      req.params.id
+    ]
   );
   
-  const updatedRule = db.prepare('SELECT * FROM rules WHERE id = ?').get(req.params.id);
+  const updatedRule = getOne('SELECT * FROM rules WHERE id = ?', [req.params.id]);
   
   logger.info(`Rule updated: ${req.params.id}`);
   broadcast({ type: 'rule', action: 'updated', data: updatedRule });
@@ -121,14 +116,13 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 router.delete('/:id', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const rule = db.prepare('SELECT * FROM rules WHERE id = ?').get(req.params.id);
+  const rule = getOne('SELECT * FROM rules WHERE id = ?', [req.params.id]);
   
   if (!rule) {
     return res.status(404).json({ error: 'Rule not found' });
   }
   
-  db.prepare('DELETE FROM rules WHERE id = ?').run(req.params.id);
+  runQuery('DELETE FROM rules WHERE id = ?', [req.params.id]);
   
   logger.info(`Rule deleted: ${req.params.id}`);
   broadcast({ type: 'rule', action: 'deleted', data: { id: req.params.id } });
@@ -137,8 +131,7 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 }));
 
 router.post('/:id/toggle', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const rule = db.prepare('SELECT * FROM rules WHERE id = ?').get(req.params.id);
+  const rule = getOne('SELECT * FROM rules WHERE id = ?', [req.params.id]);
   
   if (!rule) {
     return res.status(404).json({ error: 'Rule not found' });
@@ -146,7 +139,7 @@ router.post('/:id/toggle', asyncHandler(async (req, res) => {
   
   const newEnabled = rule.enabled ? 0 : 1;
   
-  db.prepare('UPDATE rules SET enabled = ? WHERE id = ?').run(newEnabled, req.params.id);
+  runQuery('UPDATE rules SET enabled = ? WHERE id = ?', [newEnabled, req.params.id]);
   
   logger.info(`Rule ${req.params.id} ${newEnabled ? 'enabled' : 'disabled'}`);
   broadcast({ type: 'rule', action: 'toggled', data: { id: req.params.id, enabled: !!newEnabled } });

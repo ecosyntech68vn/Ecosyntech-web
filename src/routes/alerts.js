@@ -1,21 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { getDatabase } = require('../config/database');
+const { getAll, getOne, runQuery } = require('../config/database');
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../config/logger');
 const { broadcast } = require('../websocket');
 
 router.get('/', asyncHandler(async (req, res) => {
-  const db = getDatabase();
   const includeAcknowledged = req.query.includeAcknowledged === 'true';
   
-  let query = 'SELECT * FROM alerts ORDER BY timestamp DESC';
+  let query = 'SELECT * FROM alerts ORDER BY timestamp DESC LIMIT 100';
   if (!includeAcknowledged) {
-    query += ' WHERE acknowledged = 0';
+    query = 'SELECT * FROM alerts WHERE acknowledged = 0 ORDER BY timestamp DESC LIMIT 100';
   }
-  query += ' LIMIT 100';
   
-  const alerts = db.prepare(query).all();
+  const alerts = getAll(query);
   
   const result = alerts.map(alert => ({
     id: alert.id,
@@ -33,7 +31,6 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 router.post('/', asyncHandler(async (req, res) => {
-  const db = getDatabase();
   const { type, severity, sensor, value, message } = req.body;
   
   if (!type) {
@@ -42,12 +39,12 @@ router.post('/', asyncHandler(async (req, res) => {
   
   const id = `alert-${Date.now()}`;
   
-  db.prepare(`
-    INSERT INTO alerts (id, type, severity, sensor, value, message, timestamp)
-    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-  `).run(id, type, severity || 'info', sensor || null, value || null, message || '');
+  runQuery(
+    'INSERT INTO alerts (id, type, severity, sensor, value, message, timestamp) VALUES (?, ?, ?, ?, ?, ?, datetime("now"))',
+    [id, type, severity || 'info', sensor || null, value || null, message || '']
+  );
   
-  const alert = db.prepare('SELECT * FROM alerts WHERE id = ?').get(id);
+  const alert = getOne('SELECT * FROM alerts WHERE id = ?', [id]);
   
   logger.warn(`Alert created: ${type} - ${message || 'No message'}`);
   broadcast({ type: 'alert', action: 'created', data: alert });
@@ -65,20 +62,18 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 router.post('/:id/acknowledge', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const alert = db.prepare('SELECT * FROM alerts WHERE id = ?').get(req.params.id);
+  const alert = getOne('SELECT * FROM alerts WHERE id = ?', [req.params.id]);
   
   if (!alert) {
     return res.status(404).json({ error: 'Alert not found' });
   }
   
-  db.prepare(`
-    UPDATE alerts 
-    SET acknowledged = 1, acknowledged_at = CURRENT_TIMESTAMP 
-    WHERE id = ?
-  `).run(req.params.id);
+  runQuery(
+    'UPDATE alerts SET acknowledged = 1, acknowledged_at = datetime("now") WHERE id = ?',
+    [req.params.id]
+  );
   
-  const updatedAlert = db.prepare('SELECT * FROM alerts WHERE id = ?').get(req.params.id);
+  const updatedAlert = getOne('SELECT * FROM alerts WHERE id = ?', [req.params.id]);
   
   logger.info(`Alert ${req.params.id} acknowledged`);
   broadcast({ type: 'alert', action: 'acknowledged', data: updatedAlert });
@@ -91,13 +86,7 @@ router.post('/:id/acknowledge', asyncHandler(async (req, res) => {
 }));
 
 router.post('/acknowledge-all', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  
-  const result = db.prepare(`
-    UPDATE alerts 
-    SET acknowledged = 1, acknowledged_at = CURRENT_TIMESTAMP 
-    WHERE acknowledged = 0
-  `).run();
+  const result = runQuery('UPDATE alerts SET acknowledged = 1, acknowledged_at = datetime("now") WHERE acknowledged = 0');
   
   logger.info(`${result.changes} alerts acknowledged`);
   broadcast({ type: 'alert', action: 'all-acknowledged' });
@@ -106,27 +95,24 @@ router.post('/acknowledge-all', asyncHandler(async (req, res) => {
 }));
 
 router.delete('/:id', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const alert = db.prepare('SELECT * FROM alerts WHERE id = ?').get(req.params.id);
+  const alert = getOne('SELECT * FROM alerts WHERE id = ?', [req.params.id]);
   
   if (!alert) {
     return res.status(404).json({ error: 'Alert not found' });
   }
   
-  db.prepare('DELETE FROM alerts WHERE id = ?').run(req.params.id);
+  runQuery('DELETE FROM alerts WHERE id = ?', [req.params.id]);
   
   res.status(204).send();
 }));
 
 router.delete('/', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  
   const acknowledgedOnly = req.query.acknowledgedOnly === 'true';
   
   if (acknowledgedOnly) {
-    db.prepare('DELETE FROM alerts WHERE acknowledged = 1').run();
+    runQuery('DELETE FROM alerts WHERE acknowledged = 1');
   } else {
-    db.prepare('DELETE FROM alerts').run();
+    runQuery('DELETE FROM alerts');
   }
   
   logger.info('Alerts cleared');

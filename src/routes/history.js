@@ -1,18 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { getDatabase } = require('../config/database');
+const { getAll, getOne, runQuery } = require('../config/database');
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../config/logger');
 
 router.get('/', asyncHandler(async (req, res) => {
-  const db = getDatabase();
   const limit = parseInt(req.query.limit) || 50;
   
-  const history = db.prepare(`
-    SELECT * FROM history 
-    ORDER BY timestamp DESC 
-    LIMIT ?
-  `).all(limit);
+  const history = getAll(`SELECT * FROM history ORDER BY timestamp DESC LIMIT ${limit}`);
   
   const result = history.map(entry => ({
     id: entry.id,
@@ -26,7 +21,6 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 router.post('/', asyncHandler(async (req, res) => {
-  const db = getDatabase();
   const { action, trigger, status } = req.body;
   
   if (!action) {
@@ -35,12 +29,12 @@ router.post('/', asyncHandler(async (req, res) => {
   
   const id = `history-${Date.now()}`;
   
-  db.prepare(`
-    INSERT INTO history (id, action, trigger, status, timestamp)
-    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-  `).run(id, action, trigger || 'Manual', status || 'success');
+  runQuery(
+    'INSERT INTO history (id, action, trigger, status, timestamp) VALUES (?, ?, ?, ?, datetime("now"))',
+    [id, action, trigger || 'Manual', status || 'success']
+  );
   
-  const entry = db.prepare('SELECT * FROM history WHERE id = ?').get(id);
+  const entry = getOne('SELECT * FROM history WHERE id = ?', [id]);
   
   res.status(201).json({
     id: entry.id,
@@ -52,22 +46,19 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 router.delete('/:id', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  const entry = db.prepare('SELECT * FROM history WHERE id = ?').get(req.params.id);
+  const entry = getOne('SELECT * FROM history WHERE id = ?', [req.params.id]);
   
   if (!entry) {
     return res.status(404).json({ error: 'History entry not found' });
   }
   
-  db.prepare('DELETE FROM history WHERE id = ?').run(req.params.id);
+  runQuery('DELETE FROM history WHERE id = ?', [req.params.id]);
   
   res.status(204).send();
 }));
 
 router.delete('/', asyncHandler(async (req, res) => {
-  const db = getDatabase();
-  
-  db.prepare('DELETE FROM history').run();
+  runQuery('DELETE FROM history');
   
   logger.info('All history entries cleared');
   

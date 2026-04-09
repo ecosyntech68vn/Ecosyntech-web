@@ -1,26 +1,26 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
-const timeout = require('express-timeout-handler');
 const http = require('http');
 
-const config = require('./config');
-const logger = require('./config/logger');
-const { initDatabase, closeDatabase } = require('./config/database');
-const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
-const { initWebSocket, broadcast } = require('./websocket');
+const config = require('./src/config');
+const logger = require('./src/config/logger');
+const { initDatabase, closeDatabase, getAll, getOne, runQuery, saveDatabase } = require('./src/config/database');
+const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
+const { initWebSocket, broadcast } = require('./src/websocket');
 
-const sensorsRoutes = require('./routes/sensors');
-const devicesRoutes = require('./routes/devices');
-const rulesRoutes = require('./routes/rules');
-const schedulesRoutes = require('./routes/schedules');
-const historyRoutes = require('./routes/history');
-const alertsRoutes = require('./routes/alerts');
-const webhooksRoutes = require('./routes/webhooks');
-const statsRoutes = require('./routes/stats');
-const authRoutes = require('./routes/auth');
+const sensorsRoutes = require('./src/routes/sensors');
+const devicesRoutes = require('./src/routes/devices');
+const rulesRoutes = require('./src/routes/rules');
+const schedulesRoutes = require('./src/routes/schedules');
+const historyRoutes = require('./src/routes/history');
+const alertsRoutes = require('./src/routes/alerts');
+const webhooksRoutes = require('./src/routes/webhooks');
+const statsRoutes = require('./src/routes/stats');
+const authRoutes = require('./src/routes/auth');
 
 function createApp() {
   const app = express();
@@ -53,13 +53,6 @@ function createApp() {
   });
   app.use('/api/', limiter);
   
-  app.use(timeout.handler({
-    timeout: 30000,
-    onTimeout: (req, res) => {
-      res.status(503).json({ error: 'Request timeout' });
-    }
-  }));
-  
   app.use((req, res, next) => {
     res.setHeader('X-Response-Time', Date.now());
     logger.info(`${req.method} ${req.path}`, {
@@ -75,15 +68,16 @@ function createApp() {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: config.nodeEnv,
-      version: process.version
+      version: '2.0.0'
     });
   });
   
   app.get('/api/version', (req, res) => {
     res.json({
-      api: '1.0.0',
+      api: '2.0.0',
       server: 'Express',
-      websocket: 'enabled'
+      websocket: 'enabled',
+      database: 'sql.js'
     });
   });
   
@@ -98,11 +92,9 @@ function createApp() {
   app.use('/api/auth', authRoutes);
   
   app.post('/api/export', (req, res) => {
-    const db = require('./config/database').getDatabase();
-    
     const exportData = {
       exportedAt: new Date().toISOString(),
-      version: '1.0.0',
+      version: '2.0.0',
       sensors: {},
       devices: [],
       rules: [],
@@ -111,7 +103,7 @@ function createApp() {
       alerts: []
     };
     
-    const sensors = db.prepare('SELECT * FROM sensors').all();
+    const sensors = getAll('SELECT * FROM sensors');
     sensors.forEach(s => {
       exportData.sensors[s.type] = {
         value: s.value,
@@ -122,67 +114,54 @@ function createApp() {
       };
     });
     
-    exportData.devices = db.prepare('SELECT * FROM devices').all().map(d => ({
+    exportData.devices = getAll('SELECT * FROM devices').map(d => ({
       ...d,
       config: JSON.parse(d.config || '{}')
     }));
     
-    exportData.rules = db.prepare('SELECT * FROM rules').all().map(r => ({
+    exportData.rules = getAll('SELECT * FROM rules').map(r => ({
       ...r,
       condition: JSON.parse(r.condition),
       action: JSON.parse(r.action)
     }));
     
-    exportData.schedules = db.prepare('SELECT * FROM schedules').all().map(s => ({
+    exportData.schedules = getAll('SELECT * FROM schedules').map(s => ({
       ...s,
       zones: JSON.parse(s.zones),
       days: JSON.parse(s.days)
     }));
     
-    exportData.history = db.prepare('SELECT * FROM history ORDER BY timestamp DESC LIMIT 100').all();
-    exportData.alerts = db.prepare('SELECT * FROM alerts ORDER BY timestamp DESC LIMIT 50').all();
+    exportData.history = getAll('SELECT * FROM history ORDER BY timestamp DESC LIMIT 100');
+    exportData.alerts = getAll('SELECT * FROM alerts ORDER BY timestamp DESC LIMIT 50');
     
     res.json(exportData);
   });
   
   app.post('/api/import', (req, res) => {
-    const db = require('./config/database').getDatabase();
     const { sensors, devices, rules, schedules } = req.body;
     
     if (sensors) {
       Object.entries(sensors).forEach(([type, data]) => {
-        const existing = db.prepare('SELECT id FROM sensors WHERE type = ?').get(type);
-        if (existing) {
-          db.prepare(`
-            UPDATE sensors SET value = ?, unit = ?, min_value = ?, max_value = ?
-            WHERE type = ?
-          `).run(data.value, data.unit, data.min, data.max, type);
-        }
+        runQuery(
+          'UPDATE sensors SET value = ?, unit = ?, min_value = ?, max_value = ? WHERE type = ?',
+          [data.value, data.unit, data.min, data.max, type]
+        );
       });
     }
     
     if (rules && Array.isArray(rules)) {
       rules.forEach(rule => {
-        const existing = db.prepare('SELECT id FROM rules WHERE id = ?').get(rule.id);
-        if (existing) {
-          db.prepare(`
-            UPDATE rules SET name = ?, description = ?, enabled = ?, condition = ?, action = ?
-            WHERE id = ?
-          `).run(
-            rule.name, rule.description || '', rule.enabled ? 1 : 0,
-            JSON.stringify(rule.condition), JSON.stringify(rule.action),
+        runQuery(
+          'UPDATE rules SET name = ?, description = ?, enabled = ?, condition = ?, action = ? WHERE id = ?',
+          [
+            rule.name,
+            rule.description || '',
+            rule.enabled ? 1 : 0,
+            JSON.stringify(rule.condition),
+            JSON.stringify(rule.action),
             rule.id
-          );
-        } else {
-          db.prepare(`
-            INSERT INTO rules (id, name, description, enabled, condition, action)
-            VALUES (?, ?, ?, ?, ?, ?)
-          `).run(
-            rule.id || `rule-${Date.now()}`,
-            rule.name, rule.description || '', rule.enabled ? 1 : 0,
-            JSON.stringify(rule.condition), JSON.stringify(rule.action)
-          );
-        }
+          ]
+        );
       });
     }
     
@@ -195,9 +174,9 @@ function createApp() {
   return app;
 }
 
-function startServer() {
+async function startServer() {
   try {
-    initDatabase();
+    await initDatabase();
     
     const app = createApp();
     
@@ -210,13 +189,13 @@ function startServer() {
     server.listen(config.port, () => {
       logger.info(`
 ╔══════════════════════════════════════════════════════════════╗
-║           EcoSynTech IoT Backend Server v1.0.0                ║
+║           EcoSynTech IoT Backend Server v2.0.0               ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Status:      Running                                        ║
 ║  Port:        ${String(config.port).padEnd(48)}║
 ║  Environment: ${config.nodeEnv.padEnd(48)}║
 ║  WebSocket:   Enabled (/ws)                                  ║
-║  Database:    SQLite                                         ║
+║  Database:    sql.js (SQLite in memory)                      ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  API Endpoints:                                              ║
 ║    GET  /api/health            - Health check                ║
@@ -229,7 +208,7 @@ function startServer() {
 ║    GET  /api/history           - Get activity history         ║
 ║    GET  /api/alerts            - Get alerts                  ║
 ║    GET  /api/stats             - Get system statistics        ║
-║    POST /api/export            - Export all data             ║
+║    POST /api/export            - Export all data              ║
 ║    POST /api/import            - Import data                  ║
 ║    POST /api/auth/register     - Register new user           ║
 ║    POST /api/auth/login        - Login                        ║
@@ -277,15 +256,12 @@ function startServer() {
 }
 
 function startSensorSimulation() {
-  const { getDatabase } = require('./config/database');
   const sensors = ['temperature', 'humidity', 'soil', 'light', 'water', 'co2', 'ec', 'ph'];
   
   setInterval(() => {
     try {
-      const db = getDatabase();
-      
       sensors.forEach(sensor => {
-        const current = db.prepare('SELECT * FROM sensors WHERE type = ?').get(sensor);
+        const current = getOne('SELECT * FROM sensors WHERE type = ?', [sensor]);
         if (!current) return;
         
         const variance = sensor === 'ph' ? 0.1 : (sensor === 'ec' ? 0.05 : 1);
@@ -300,9 +276,10 @@ function startSensorSimulation() {
         
         const roundedValue = parseFloat(newValue.toFixed(sensor === 'ph' || sensor === 'ec' ? 2 : 1));
         
-        db.prepare(`
-          UPDATE sensors SET value = ?, timestamp = CURRENT_TIMESTAMP WHERE type = ?
-        `).run(roundedValue, sensor);
+        runQuery(
+          'UPDATE sensors SET value = ?, timestamp = datetime("now") WHERE type = ?',
+          [roundedValue, sensor]
+        );
         
         broadcast({
           type: 'sensor-update',
@@ -319,12 +296,9 @@ function startSensorSimulation() {
 }
 
 function checkRules() {
-  const { getDatabase } = require('./config/database');
-  
   try {
-    const db = getDatabase();
-    const rules = db.prepare('SELECT * FROM rules WHERE enabled = 1').all();
-    const sensors = db.prepare('SELECT * FROM sensors').all();
+    const rules = getAll('SELECT * FROM rules WHERE enabled = 1');
+    const sensors = getAll('SELECT * FROM sensors');
     
     const sensorMap = {};
     sensors.forEach(s => { sensorMap[s.type] = s; });
@@ -352,20 +326,28 @@ function checkRules() {
         const lastTriggered = rule.last_triggered ? new Date(rule.last_triggered) : null;
         
         if (!lastTriggered || (now - lastTriggered) >= rule.cooldown_minutes * 60 * 1000) {
-          db.prepare(`
-            UPDATE rules SET trigger_count = trigger_count + 1, last_triggered = CURRENT_TIMESTAMP WHERE id = ?
-          `).run(rule.id);
+          runQuery(
+            'UPDATE rules SET trigger_count = trigger_count + 1, last_triggered = datetime("now") WHERE id = ?',
+            [rule.id]
+          );
           
           const action = JSON.parse(rule.action);
           
           if (action.type === 'alert') {
             const alertId = `alert-${Date.now()}`;
-            db.prepare(`
-              INSERT INTO alerts (id, type, severity, sensor, value, message, timestamp)
-              VALUES (?, 'rule', ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            `).run(alertId, value < threshold ? 'warning' : 'danger', condition.sensor, value, `Rule "${rule.name}" triggered`);
+            runQuery(
+              'INSERT INTO alerts (id, type, severity, sensor, value, message, timestamp) VALUES (?, ?, ?, ?, ?, ?, datetime("now"))',
+              [
+                alertId,
+                'rule',
+                value < threshold ? 'warning' : 'danger',
+                condition.sensor,
+                value,
+                `Rule "${rule.name}" triggered`
+              ]
+            );
             
-            const alert = db.prepare('SELECT * FROM alerts WHERE id = ?').get(alertId);
+            const alert = getOne('SELECT * FROM alerts WHERE id = ?', [alertId]);
             broadcast({ type: 'alert', action: 'created', data: alert });
           }
           
@@ -377,10 +359,10 @@ function checkRules() {
             timestamp: new Date().toISOString()
           };
           
-          db.prepare(`
-            INSERT INTO history (id, action, trigger, status, timestamp)
-            VALUES (?, ?, ?, ?, ?)
-          `).run(historyEntry.id, historyEntry.action, historyEntry.trigger, historyEntry.status, historyEntry.timestamp);
+          runQuery(
+            'INSERT INTO history (id, action, trigger, status, timestamp) VALUES (?, ?, ?, ?, ?)',
+            [historyEntry.id, historyEntry.action, historyEntry.trigger, historyEntry.status, historyEntry.timestamp]
+          );
           
           broadcast({ type: 'rule-triggered', data: { rule: rule.id, action: action.type } });
           broadcast({ type: 'history', action: 'added', data: historyEntry });
@@ -394,8 +376,6 @@ function checkRules() {
   }
 }
 
-if (require.main === module) {
-  startServer();
-}
+startServer();
 
-module.exports = { createApp, startServer };
+module.exports = { createApp };
