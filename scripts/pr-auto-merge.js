@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 async function main() {
   // Determine owner/repo from git remote
@@ -26,10 +28,22 @@ async function main() {
     process.exit(1);
   }
 
-  // GitHub token
+  // GitHub token (env or config file)
   let token = process.env.GITHUB_TOKEN;
+  // try to read from config file prconfig.json if exists
   if (!token) {
-    // Simple prompt for token if not provided by env
+    const configPath = path.resolve(process.cwd(), 'prconfig.json');
+    if (fs.existsSync(configPath)) {
+      try {
+        const cfg = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        if (cfg.token) token = cfg.token;
+      } catch (e) {
+        // ignore parse errors
+      }
+    }
+  }
+  if (!token) {
+    // Fallback: prompt for token if in interactive mode
     const rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
     token = await new Promise(resolve => {
       rl.question('GitHub token (PAT) with repo scope: ', ans => {
@@ -39,7 +53,7 @@ async function main() {
     });
   }
   if (!token) {
-    console.error('GitHub token is required. Set GITHUB_TOKEN env or provide interactively.');
+    console.error('GitHub token is required. Set GITHUB_TOKEN env, provide prconfig.json token, or input interactively.');
     process.exit(1);
   }
 
@@ -99,7 +113,7 @@ async function main() {
         console.log('Auto-merge could not be enabled via GraphQL (check permissions).');
       }
     } catch (e) {
-      console.log('GraphQL auto-merge call failed:', e.message);
+        console.log('GraphQL auto-merge call failed:', e.message);
     }
   } else {
     console.log('PR node_id not found; cannot enable auto-merge via GraphQL.');

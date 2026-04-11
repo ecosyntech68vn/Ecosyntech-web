@@ -153,6 +153,22 @@ async function main() {
     const sp = spawn('npm', ['start'], { stdio: 'inherit', shell: true });
     sp.on('close', (code) => console.log('Server exited with code', code));
   }
+
+  // Optional: auto-create PR after bootstrap in CI/CD style run
+  if (process.env.AUTO_PR_MERGE === '1' || process.env.AUTO_PR_MERGE === 'true') {
+    console.log('Triggering automatic PR creation and auto-merge...');
+    // Propagate defaults to PR script via env, allow override by PR_* vars
+    const child = require('child_process').spawn('node', ['scripts/pr-auto-merge.js'], {
+      stdio: 'inherit',
+      env: Object.assign({}, process.env, {
+        PR_HEAD: process.env.PR_HEAD || 'feature/full-test-ci',
+        PR_BASE: process.env.PR_BASE || 'main',
+        PR_TITLE: process.env.PR_TITLE || 'feat: End-to-End Test Suite + CI/CD',
+        PR_BODY: process.env.PR_BODY || 'End-to-end tests, webhook tests, seed data, and CI/CD pipeline implemented.'
+      }),
+    });
+    child.on('error', (err) => console.error('PR automation failed:', err.message));
+  }
 }
 
 main().catch((err) => {
