@@ -42,6 +42,28 @@ async function main() {
       }
     }
   }
+  // Fallback: try reading token from local secrets files (for air-gapped or quick-start scenarios)
+  if (!token) {
+    const secretPaths = [
+      path.resolve(process.cwd(), 'secrets', 'github_token'),
+      path.resolve(process.cwd(), 'secrets', 'token.txt'),
+      path.resolve(process.cwd(), 'token.txt')
+    ];
+    for (const p of secretPaths) {
+      try {
+        if (fs.existsSync(p)) {
+          const content = fs.readFileSync(p, 'utf8').trim();
+          if (content) {
+            token = content;
+            console.log(`Using GitHub token from secret: ${p}`);
+            break;
+          }
+        }
+      } catch (e) {
+        // ignore read errors and continue looking
+      }
+    }
+  }
   if (!token) {
     // Fallback: prompt for token if in interactive mode
     const rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
