@@ -81,4 +81,10 @@ describe('API - Full End-to-End', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('sensors');
   });
+
+  test('Import data (empty payload)', async () => {
+    const res = await request(app).post('/api/import').set(authHeader()).send({});
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('success', true);
+  });
 });

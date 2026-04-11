@@ -41,6 +41,17 @@ describe('API Endpoints - Auth and Health', () => {
     expect(res.body).toHaveProperty('server');
   });
 
+  test('Register a new user', async () => {
+    const payload = {
+      email: 'newuser2@example.com',
+      password: 'newpass123',
+      name: 'New User 2'
+    };
+    const res = await request(app).post('/api/auth/register').send(payload);
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('token');
+  });
+
   test('Login with seeded test user', async () => {
     const payload = {
       email: 'test@example.com',
