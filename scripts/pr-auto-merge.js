@@ -68,15 +68,46 @@ async function main() {
   const payload = { title, head, base, body };
   let resp;
   try {
-    resp = await fetch(api, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/vnd.github+json'
-      },
-      body: JSON.stringify(payload)
-    });
+    if (typeof fetch === 'function') {
+      resp = await fetch(api, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github+json'
+        },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      // Fallback using https module
+      const https = require('https');
+      const { URL } = require('url');
+      const urlObj = new URL(api);
+      const options = {
+        hostname: urlObj.hostname,
+        port: urlObj.port || (urlObj.protocol === 'https:' ? 443 : 80),
+        path: urlObj.pathname + (urlObj.search || ''),
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github+json'
+        }
+      };
+      const payloadStr = JSON.stringify(payload);
+      resp = await new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+          let data = '';
+          res.on('data', (chunk) => (data += chunk));
+          res.on('end', () => {
+            resolve({ status: res.statusCode, text: data, json: () => JSON.parse(data) });
+          });
+        });
+        req.on('error', reject);
+        req.write(payloadStr);
+        req.end();
+      });
+    }
   } catch (e) {
     console.error('Failed to create PR:', e.message);
     process.exit(1);
@@ -97,14 +128,44 @@ async function main() {
     const q = `mutation enableAutoMerge($pullRequestId: ID!, $mergeMethod: MergeMethod!) {\n  enablePullRequestAutoMerge(input: {pullRequestId: $pullRequestId, mergeMethod: $mergeMethod}) {\n    pullRequest { number }\n  }\n}`;
     const vars = { pullRequestId: prNodeId, mergeMethod: 'MERGE' };
     try {
-      const gresp = await fetch(graphqlUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ query: q, variables: vars })
-      });
+      let gresp;
+      if (typeof fetch === 'function') {
+        gresp = await fetch(graphqlUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ query: q, variables: vars })
+        });
+      } else {
+        const https = require('https');
+        const { URL } = require('url');
+        const urlObj = new URL(graphqlUrl);
+        const options = {
+          hostname: urlObj.hostname,
+          port: urlObj.port || (urlObj.protocol === 'https:' ? 443 : 80),
+          path: urlObj.pathname + (urlObj.search || ''),
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        };
+        const payloadStr = JSON.stringify({ query: q, variables: vars });
+        gresp = await new Promise((resolve, reject) => {
+          const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => (data += chunk));
+            res.on('end', () => {
+              resolve({ status: res.statusCode, text: data, json: () => JSON.parse(data) });
+            });
+          });
+          req.on('error', reject);
+          req.write(payloadStr);
+          req.end();
+        });
+      }
       const gBody = await gresp.json();
       const autoMerged = gBody?.data?.enablePullRequestAutoMerge?.pullRequest?.number;
       if (autoMerged) {
