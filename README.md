@@ -258,6 +258,9 @@ npm run dev     # Chạy development mode (với nodemon)
 npm run lint    # Kiểm tra code style
 npm test        # Chạy tests
 npm run build   # Kiểm tra syntax
+
+All-In Release 2.0.0
+- This release contains an all-in-one deployment package for customers (Dockerized, bootstrap automation, PR automation) and comprehensive test suites. See RELEASE_NOTES.md for full details.
 ```
 
 ---

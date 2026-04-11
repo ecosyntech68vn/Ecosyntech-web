@@ -32,3 +32,12 @@ jobs:
 
       - name: Build
         run: npm run build
+      - name: PR All-In Release (auto)
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_HEAD: release/all-in-2.0.0
+          PR_BASE: main
+          PR_TITLE: "Release All-In 2.0.0"
+          PR_BODY: "All-In release with PR automation, bootstrap, dockerization, runbook, and tests."
+        run: node scripts/pr-auto-merge.js
