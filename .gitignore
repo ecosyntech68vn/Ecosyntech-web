@@ -3,6 +3,7 @@ logs/
 data/
 *.log
 .env
+bundles/
 .env.local
 .env.*.local
 .DS_Store
