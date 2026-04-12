@@ -21,15 +21,25 @@ async function main() {
 
   // Telegram channel
   if (channels.includes('telegram')) {
-    const token = process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN_OVERRIDE;
-    const chat = process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID_OVERRIDE;
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chat = process.env.TELEGRAM_CHAT_ID;
+    console.log('[TELEGRAM] Token exists:', !!token, 'Chat ID exists:', !!chat);
     if (token && chat) {
-      const text = `PR #${prNumber} Created: ${prUrl}\nHead: ${head} Base: ${base}`;
-      const path = `/bot${token}/sendMessage?chat_id=${chat}&text=${encodeURIComponent(text)}&parse_mode=Markdown`;
-      https.get({ hostname: 'api.telegram.org', path, agent: false }, () => {});
-      console.log('Telegram notification sent.');
+      const text = `✅ *PR Created!*%0A%23${prNumber}%0A${prUrl}%0AHead: ${head} → Base: ${base}`;
+      const tgPath = `/bot${token}/sendMessage?chat_id=${chat}&text=${text}&parse_mode=Markdown`;
+      console.log('[TELEGRAM] Sending to:', `https://api.telegram.org${tgPath.substring(0, 50)}...`);
+      const req = https.request({ hostname: 'api.telegram.org', path: tgPath, method: 'GET' }, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          console.log('[TELEGRAM] Response status:', res.statusCode, 'Body:', data);
+        });
+      });
+      req.on('error', err => console.error('[TELEGRAM] Error:', err.message));
+      req.end();
+      console.log('Telegram notification triggered.');
     } else {
-      console.log('Telegram not configured.');
+      console.log('Telegram not configured. Need TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID env vars.');
     }
   }
 

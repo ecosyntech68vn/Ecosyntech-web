@@ -46,8 +46,10 @@ jobs:
         run: node scripts/pr-auto-merge.js
         env:
           GH_PAT_FOR_PR: ${{ secrets.GH_PAT }}
-          NOTIFY_CHANNEL: telegram,email
+          NOTIFY_CHANNEL: telegram
           PR_HEAD: final-all-in
           PR_BASE: main
           PR_TITLE: "Release All-In 2.0.0"
           PR_BODY: "All-In release with PR automation, bootstrap, dockerization, runbook, and tests."
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
