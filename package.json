@@ -12,7 +12,9 @@
     "all": "npm install && npm run lint && npm test && npm run build",
     "test:ci": "jest --coverage --passWithNoTests --forceExit",
     "bootstrap": "node bootstrap.js",
-    "mqtt:start": "node scripts/mqtt-broker.js"
+    "mqtt:start": "node scripts/mqtt-broker.js",
+    "telegram": "node scripts/telegram-iot-controller.js",
+    "setup": "chmod +x scripts/setup.sh && ./scripts/setup.sh"
   },
   "keywords": [
     "iot",
