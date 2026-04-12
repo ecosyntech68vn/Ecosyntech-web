@@ -131,11 +131,19 @@ async function main() {
   } catch (e) {
     // fallthrough
   }
-  // Notify via preferred channels (Telegram/Slack/GAS/Email) using a cross-channel notifier
+  // Notify via preferred channels (Telegram/Slack/GAS/Email)
   try {
     const { execSync } = require('child_process');
-    const notifyCmd = `node ${path.resolve(__dirname, 'notify.js')} --event PR_CREATED --pr_url "${pr.html_url}" --pr_number ${pr.number} --head "${head}" --base "${base}"`;
-    execSync(notifyCmd, { stdio: 'inherit' });
+    const notifyEnv = {
+      ...process.env,
+      NOTIFY_EVENT: 'PR_CREATED',
+      PR_URL: pr.html_url,
+      PR_NUMBER: String(pr.number),
+      PR_HEAD: head,
+      PR_BASE: base
+    };
+    const notifyCmd = `node ${path.resolve(__dirname, 'notify.js')}`;
+    execSync(notifyCmd, { stdio: 'inherit', env: notifyEnv });
   } catch (e) {
     console.error('Notifier invocation failed:', e?.message || e);
   }

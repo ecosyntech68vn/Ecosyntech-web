@@ -98,8 +98,10 @@ function createApp() {
 
   app.get('/readiness', async (req, res) => {
     try {
-      if (global.db && typeof global.db.query === 'function') {
-        await global.db.query('SELECT 1');
+      // Use DB helper to perform a lightweight check if DB is initialized
+      if (typeof getOne === 'function') {
+        // If DB not initialized, this will throw
+        getOne('SELECT 1');
       }
       res.status(200).json({ status: 'ready' });
     } catch (err) {
