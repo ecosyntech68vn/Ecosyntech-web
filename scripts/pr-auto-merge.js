@@ -28,8 +28,8 @@ async function main() {
     process.exit(1);
   }
 
-  // GitHub token (env or config file)
-  let token = process.env.GITHUB_TOKEN;
+  // GitHub token: prefer GH_PAT_FOR_PR (PAT with repo scope), fallback to GITHUB_TOKEN
+  let token = process.env.GH_PAT_FOR_PR || process.env.GITHUB_TOKEN;
   // try to read from config file prconfig.json if exists
   if (!token) {
     const configPath = path.resolve(process.cwd(), 'prconfig.json');

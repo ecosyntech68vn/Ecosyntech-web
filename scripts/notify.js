@@ -33,6 +33,20 @@ async function main() {
     }
   }
 
+  // Optional: test telegram notifier without affecting PR flow
+  if (process.env.TELEGRAM_TEST === '1') {
+    const t = process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN_OVERRIDE;
+    const c = process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID_OVERRIDE;
+    if (t && c) {
+      const testText = '[TEST] Telegram notifier is wired and can reach chat';
+      const testPath = `/bot${t}/sendMessage?chat_id=${c}&text=${encodeURIComponent(testText)}&parse_mode=Markdown`;
+      https.request({ hostname: 'api.telegram.org', path: testPath, method: 'GET' }, () => {}).on('error', () => {}).end();
+      console.log('Telegram test message sent (override)');
+    } else {
+      console.log('Telegram test not configured (token/chat_id missing).');
+    }
+  }
+
   // Slack channel
   if (channels.includes('slack')) {
     const webhook = process.env.SLACK_WEBHOOK_URL;

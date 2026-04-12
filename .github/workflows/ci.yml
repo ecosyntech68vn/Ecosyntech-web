@@ -44,7 +44,7 @@ jobs:
       - name: PR All-In Release (auto)
         if: always()
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT_FOR_PR: ${{ secrets.GH_PAT }}
           NOTIFY_CHANNEL: telegram,email
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
