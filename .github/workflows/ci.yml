@@ -49,7 +49,7 @@ jobs:
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          PR_HEAD: release/all-in-2.0.0
+          PR_HEAD: final-all-in
           PR_BASE: main
           PR_TITLE: "Release All-In 2.0.0"
           PR_BODY: "All-In release with PR automation, bootstrap, dockerization, runbook, and tests."
