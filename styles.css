@@ -9,6 +9,24 @@
   --white: #ffffff;
   --shadow: 0 30px 80px rgba(9, 27, 20, 0.18);
   --glass: rgba(255, 255, 255, 0.78);
+  /* Light theme (default) */
+  --bg-primary: linear-gradient(180deg, #f0f7f1 0%, #e8f1ea 35%, #fcfaf4 100%);
+  --bg-secondary: #f0f4f1;
+  --bg-card: #ffffff;
+  --text-primary: #0f2b1f;
+  --text-secondary: #5a6b62;
+  --accent-color: #1f6f4a;
+  --border-color: rgba(15, 43, 31, 0.1);
+}
+
+[data-theme="light"] {
+  --bg-primary: #0f1923;
+  --bg-secondary: #1a2535;
+  --bg-card: #243044;
+  --text-primary: #e8f1ea;
+  --text-secondary: #8a9a92;
+  --accent-color: #58b368;
+  --border-color: rgba(255, 255, 255, 0.1);
 }
 
 * {
@@ -19,9 +37,10 @@
 
 body {
   font-family: "Bricolage Grotesque", sans-serif;
-  color: var(--forest);
-  background: radial-gradient(circle at top left, #f0f7f1 0%, #e8f1ea 35%, #fcfaf4 100%);
+  color: var(--text-primary);
+  background: var(--bg-primary);
   line-height: 1.6;
+  transition: background 0.3s, color 0.3s;
 }
 
 .noise {

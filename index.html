@@ -976,6 +976,964 @@
     <div class="footer-note">© 2026 EcoSynTech. All rights reserved.</div>
   </footer>
 
+  <!-- IoT Dashboard Section -->
+  <section id="iot-dashboard-panel" class="iot-dashboard">
+    <div class="dashboard-header">
+      <div class="dashboard-title">
+        <h2>🌱 IoT Control Center</h2>
+        <p>Giám sát và điều khiển trang trại thông minh</p>
+      </div>
+      <div class="dashboard-controls">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Đổi giao diện">
+          <span class="theme-icon">🌙</span>
+        </button>
+        <button class="refresh-btn" onclick="refreshDashboard()" title="Làm mới">
+          <span>🔄</span>
+        </button>
+        <div class="connection-status" id="ws-status">
+          <span class="status-dot"></span>
+          <span>Connecting...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensor Cards Grid -->
+    <div class="sensors-grid" id="sensors-grid">
+      <div class="sensor-card" data-type="temperature">
+        <div class="sensor-icon">🌡️</div>
+        <div class="sensor-info">
+          <span class="sensor-label">Nhiệt độ</span>
+          <span class="sensor-value" id="sensor-temperature">--</span>
+          <span class="sensor-unit">°C</span>
+        </div>
+        <div class="sensor-status normal">Bình thường</div>
+        <div class="sensor-chart" id="chart-temperature"></div>
+      </div>
+      <div class="sensor-card" data-type="humidity">
+        <div class="sensor-icon">💧</div>
+        <div class="sensor-info">
+          <span class="sensor-label">Độ ẩm</span>
+          <span class="sensor-value" id="sensor-humidity">--</span>
+          <span class="sensor-unit">%</span>
+        </div>
+        <div class="sensor-status normal">Bình thường</div>
+        <div class="sensor-chart" id="chart-humidity"></div>
+      </div>
+      <div class="sensor-card" data-type="soil">
+        <div class="sensor-icon">🌍</div>
+        <div class="sensor-info">
+          <span class="sensor-label">Độ ẩm đất</span>
+          <span class="sensor-value" id="sensor-soil">--</span>
+          <span class="sensor-unit">%</span>
+        </div>
+        <div class="sensor-status warning">Cần tưới</div>
+        <div class="sensor-chart" id="chart-soil"></div>
+      </div>
+      <div class="sensor-card" data-type="light">
+        <div class="sensor-icon">☀️</div>
+        <div class="sensor-info">
+          <span class="sensor-label">Ánh sáng</span>
+          <span class="sensor-value" id="sensor-light">--</span>
+          <span class="sensor-unit">klux</span>
+        </div>
+        <div class="sensor-status normal">Bình thường</div>
+        <div class="sensor-chart" id="chart-light"></div>
+      </div>
+      <div class="sensor-card" data-type="ph">
+        <div class="sensor-icon">⚗️</div>
+        <div class="sensor-info">
+          <span class="sensor-label">pH</span>
+          <span class="sensor-value" id="sensor-ph">--</span>
+          <span class="sensor-unit">pH</span>
+        </div>
+        <div class="sensor-status normal">Bình thường</div>
+        <div class="sensor-chart" id="chart-ph"></div>
+      </div>
+      <div class="sensor-card" data-type="co2">
+        <div class="sensor-icon">🌬️</div>
+        <div class="sensor-info">
+          <span class="sensor-label">CO₂</span>
+          <span class="sensor-value" id="sensor-co2">--</span>
+          <span class="sensor-unit">ppm</span>
+        </div>
+        <div class="sensor-status normal">Bình thường</div>
+        <div class="sensor-chart" id="chart-co2"></div>
+      </div>
+      <div class="sensor-card" data-type="ec">
+        <div class="sensor-icon">⚡</div>
+        <div class="sensor-info">
+          <span class="sensor-label">EC</span>
+          <span class="sensor-value" id="sensor-ec">--</span>
+          <span class="sensor-unit">mS/cm</span>
+        </div>
+        <div class="sensor-status normal">Bình thường</div>
+        <div class="sensor-chart" id="chart-ec"></div>
+      </div>
+      <div class="sensor-card" data-type="water">
+        <div class="sensor-icon">🚿</div>
+        <div class="sensor-info">
+          <span class="sensor-label">Mực nước</span>
+          <span class="sensor-value" id="sensor-water">--</span>
+          <span class="sensor-unit">%</span>
+        </div>
+        <div class="sensor-status warning">Thấp</div>
+        <div class="sensor-chart" id="chart-water"></div>
+      </div>
+    </div>
+
+    <!-- Dashboard Panels -->
+    <div class="dashboard-panels">
+      <!-- Devices Panel -->
+      <div class="dashboard-panel devices-panel">
+        <div class="panel-header">
+          <h3>📱 Thiết bị</h3>
+          <button class="add-btn" onclick="showAddDevice()">+ Thêm</button>
+        </div>
+        <div class="devices-list" id="devices-list">
+          <div class="device-item online">
+            <span class="device-status-dot"></span>
+            <span class="device-name">SoilSense-001</span>
+            <span class="device-zone">Zone 1</span>
+            <span class="device-type">Sensor</span>
+          </div>
+          <div class="device-item online">
+            <span class="device-status-dot"></span>
+            <span class="device-name">AirPulse-002</span>
+            <span class="device-zone">Zone 2</span>
+            <span class="device-type">Sensor</span>
+          </div>
+          <div class="device-item offline">
+            <span class="device-status-dot"></span>
+            <span class="device-name">AirSense-002</span>
+            <span class="device-zone">Zone 2</span>
+            <span class="device-type">Sensor</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts Panel -->
+      <div class="dashboard-panel alerts-panel">
+        <div class="panel-header">
+          <h3>🔔 Cảnh báo</h3>
+          <span class="alert-count" id="alert-count">0</span>
+        </div>
+        <div class="alerts-list" id="alerts-list">
+          <div class="alert-item warning">
+            <span class="alert-time">14:30</span>
+            <span class="alert-msg">Độ ẩm đất Zone 1 xuống dưới ngưỡng</span>
+          </div>
+          <div class="alert-item danger">
+            <span class="alert-time">12:15</span>
+            <span class="alert-msg">Thiết bị AirSense-002 mất kết nối</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rules Panel -->
+      <div class="dashboard-panel rules-panel">
+        <div class="panel-header">
+          <h3>⚙️ Quy tắc tự động</h3>
+          <button class="add-btn" onclick="showAddRule()">+ Thêm</button>
+        </div>
+        <div class="rules-list" id="rules-list">
+          <div class="rule-item active">
+            <div class="rule-info">
+              <span class="rule-name">Tưới khi đất khô</span>
+              <span class="rule-condition">soil &lt; 35%</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked onchange="toggleRule(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="rule-item active">
+            <div class="rule-info">
+              <span class="rule-name">Bật quạt khi nóng</span>
+              <span class="rule-condition">temp &gt; 30°C</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked onchange="toggleRule(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="rule-item">
+            <div class="rule-info">
+              <span class="rule-name">Cảnh báo nước thấp</span>
+              <span class="rule-condition">water &lt; 25%</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" onchange="toggleRule(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Panel -->
+      <div class="dashboard-panel history-panel">
+        <div class="panel-header">
+          <h3>📊 Lịch sử hoạt động</h3>
+          <button class="export-btn" onclick="exportHistory()">📥 Export</button>
+        </div>
+        <div class="history-list" id="history-list">
+          <div class="history-item">
+            <span class="history-time">14:35</span>
+            <span class="history-action">Valve mở - Zone 1</span>
+            <span class="history-trigger">soil &lt; 35%</span>
+          </div>
+          <div class="history-item">
+            <span class="history-time">14:30</span>
+            <span class="history-action">Quạt bật - All</span>
+            <span class="history-trigger">temp &gt; 30°C</span>
+          </div>
+          <div class="history-item">
+            <span class="history-time">08:00</span>
+            <span class="history-action">Lịch tưới sáng</span>
+            <span class="history-trigger">schedule</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Chart -->
+    <div class="main-chart-container">
+      <div class="chart-header">
+        <h3>📈 Biểu đồ cảm biến</h3>
+        <div class="chart-controls">
+          <select id="chart-sensor-select" onchange="updateMainChart()">
+            <option value="temperature">Nhiệt độ</option>
+            <option value="humidity">Độ ẩm</option>
+            <option value="soil">Độ ẩm đất</option>
+            <option value="light">Ánh sáng</option>
+          </select>
+          <select id="chart-time-range">
+            <option value="1">1 giờ</option>
+            <option value="6">6 giờ</option>
+            <option value="24" selected>24 giờ</option>
+          </select>
+        </div>
+      </div>
+      <div class="main-chart" id="main-chart">
+        <canvas id="sensorChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    /* IoT Dashboard Styles */
+    .iot-dashboard {
+      background: var(--bg-secondary);
+      padding: 2rem;
+      border-radius: 16px;
+      margin: 2rem 0;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .dashboard-title h2 {
+      font-size: 1.8rem;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .dashboard-title p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .dashboard-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .theme-toggle, .refresh-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover, .refresh-btn:hover {
+      background: var(--accent-color);
+      transform: scale(1.05);
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-card);
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f59e0b;
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-dot.connected {
+      background: #10b981;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Sensors Grid */
+    .sensors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .sensor-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 1.25rem;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sensor-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+
+    .sensor-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .sensor-info {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0.5rem;
+    }
+
+    .sensor-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .sensor-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .sensor-unit {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-top: -0.25rem;
+    }
+
+    .sensor-status {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .sensor-status.normal {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+    }
+
+    .sensor-status.warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+    }
+
+    .sensor-status.danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    /* Dashboard Panels */
+    .dashboard-panels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .dashboard-panel {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 1.25rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .panel-header h3 {
+      font-size: 1.1rem;
+      color: var(--text-primary);
+    }
+
+    .add-btn, .export-btn {
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent-color);
+      color: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .add-btn:hover, .export-btn:hover {
+      opacity: 0.9;
+      transform: scale(1.02);
+    }
+
+    /* Devices List */
+    .devices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .device-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      font-size: 0.9rem;
+    }
+
+    .device-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .device-item.online .device-status-dot {
+      background: #10b981;
+    }
+
+    .device-item.offline .device-status-dot {
+      background: #ef4444;
+    }
+
+    .device-name {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .device-zone, .device-type {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* Alerts List */
+    .alert-count {
+      background: var(--accent-color);
+      color: white;
+      padding: 0.2rem 0.6rem;
+      border-radius: 10px;
+      font-size: 0.8rem;
+    }
+
+    .alerts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .alert-item {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+    }
+
+    .alert-item.warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 3px solid #f59e0b;
+    }
+
+    .alert-item.danger {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 3px solid #ef4444;
+    }
+
+    .alert-time {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      min-width: 50px;
+    }
+
+    /* Rules List */
+    .rules-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .rule-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+    }
+
+    .rule-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rule-name {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .rule-condition {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-family: monospace;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--border-color);
+      border-radius: 24px;
+      transition: 0.3s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+
+    input:checked + .slider {
+      background: var(--accent-color);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* History List */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      display: grid;
+      grid-template-columns: 50px 1fr auto;
+      gap: 0.75rem;
+      padding: 0.6rem;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .history-time {
+      color: var(--text-secondary);
+    }
+
+    .history-action {
+      font-weight: 500;
+    }
+
+    .history-trigger {
+      color: var(--accent-color);
+      font-size: 0.75rem;
+    }
+
+    /* Main Chart */
+    .main-chart-container {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .chart-header h3 {
+      font-size: 1.1rem;
+      color: var(--text-primary);
+    }
+
+    .chart-controls {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .chart-controls select {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .main-chart {
+      height: 300px;
+      position: relative;
+    }
+
+    .main-chart canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .iot-dashboard {
+        padding: 1rem;
+      }
+
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .sensors-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .dashboard-panels {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+
+  <script>
+    // IoT Dashboard Logic
+    let ws = null;
+    let sensorHistory = {};
+    let theme = localStorage.getItem('theme') || 'dark';
+
+    function initDashboard() {
+      applyTheme();
+      initWebSocket();
+      loadInitialData();
+    }
+
+    function applyTheme() {
+      document.body.setAttribute('data-theme', theme);
+      document.querySelector('.theme-icon').textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+
+    function toggleTheme() {
+      theme = theme === 'dark' ? 'light' : 'light';
+      localStorage.setItem('theme', theme);
+      applyTheme();
+    }
+
+    function initWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      
+      ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        document.querySelector('#ws-status .status-dot').classList.add('connected');
+        document.querySelector('#ws-status span:last-child').textContent = 'Connected';
+        console.log('WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleSensorUpdate(data);
+        } catch (e) {
+          console.error('WS message parse error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        document.querySelector('#ws-status .status-dot').classList.remove('connected');
+        document.querySelector('#ws-status span:last-child').textContent = 'Disconnected';
+        setTimeout(initWebSocket, 3000);
+      };
+
+      ws.onerror = (err) => {
+        console.error('WebSocket error:', err);
+      };
+    }
+
+    function handleSensorUpdate(data) {
+      if (data.type === 'sensor-update') {
+        updateSensorCard(data.data);
+        addToHistory(data.data);
+      } else if (data.type === 'alert') {
+        addAlert(data.data);
+      }
+    }
+
+    function updateSensorCard(sensor) {
+      const valueEl = document.getElementById(`sensor-${sensor.type}`);
+      if (valueEl) {
+        valueEl.textContent = sensor.value.toFixed(1);
+        
+        const card = valueEl.closest('.sensor-card');
+        const statusEl = card.querySelector('.sensor-status');
+        
+        // Update status based on thresholds
+        const thresholds = {
+          temperature: { min: 18, max: 32, warn: { low: 20, high: 30 } },
+          humidity: { min: 60, max: 85 },
+          soil: { min: 30, max: 70 },
+          water: { min: 20, max: 100 },
+          light: { min: 20, max: 60 },
+          ph: { min: 6.0, max: 7.5 },
+          co2: { min: 350, max: 800 },
+          ec: { min: 1.5, max: 3.0 }
+        };
+
+        const t = thresholds[sensor.type];
+        if (t) {
+          if (sensor.value < t.min || sensor.value > t.max) {
+            statusEl.className = 'sensor-status danger';
+            statusEl.textContent = 'Nguy hiểm';
+          } else if (t.warn && (sensor.value < t.warn.low || sensor.value > t.warn.high)) {
+            statusEl.className = 'sensor-status warning';
+            statusEl.textContent = 'Cảnh báo';
+          } else {
+            statusEl.className = 'sensor-status normal';
+            statusEl.textContent = 'Bình thường';
+          }
+        }
+      }
+    }
+
+    function loadInitialData() {
+      // Load from API
+      fetch('/api/sensors')
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            data.forEach(sensor => updateSensorCard(sensor));
+          }
+        })
+        .catch(console.error);
+
+      // Load devices
+      fetch('/api/devices')
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            renderDevices(data);
+          }
+        })
+        .catch(console.error);
+
+      // Load rules
+      fetch('/api/rules')
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            renderRules(data);
+          }
+        })
+        .catch(console.error);
+
+      // Load history
+      fetch('/api/history')
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            renderHistory(data);
+          }
+        })
+        .catch(console.error);
+
+      // Load alerts
+      fetch('/api/alerts')
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            renderAlerts(data);
+          }
+        })
+        .catch(console.error);
+    }
+
+    function renderDevices(devices) {
+      const container = document.getElementById('devices-list');
+      if (!container) return;
+      container.innerHTML = devices.map(d => `
+        <div class="device-item ${d.status || 'offline'}">
+          <span class="device-status-dot"></span>
+          <span class="device-name">${d.name}</span>
+          <span class="device-zone">${d.zone || '-'}</span>
+          <span class="device-type">${d.type}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderRules(rules) {
+      const container = document.getElementById('rules-list');
+      if (!container) return;
+      container.innerHTML = rules.map(r => {
+        const cond = JSON.parse(r.condition || '{}');
+        return `
+          <div class="rule-item ${r.enabled ? 'active' : ''}">
+            <div class="rule-info">
+              <span class="rule-name">${r.name}</span>
+              <span class="rule-condition">${cond.sensor} ${cond.operator} ${cond.value}</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" ${r.enabled ? 'checked' : ''} onchange="toggleRule('${r.id}', this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderHistory(history) {
+      const container = document.getElementById('history-list');
+      if (!container) return;
+      container.innerHTML = history.slice(0, 10).map(h => `
+        <div class="history-item">
+          <span class="history-time">${new Date(h.timestamp).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}</span>
+          <span class="history-action">${h.action}</span>
+          <span class="history-trigger">${h.trigger || '-'}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderAlerts(alerts) {
+      const container = document.getElementById('alerts-list');
+      const countEl = document.getElementById('alert-count');
+      if (!container) return;
+      const unack = alerts.filter(a => !a.acknowledged);
+      countEl.textContent = unack.length;
+      container.innerHTML = unack.slice(0, 5).map(a => `
+        <div class="alert-item ${a.severity}">
+          <span class="alert-time">${new Date(a.timestamp).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}</span>
+          <span class="alert-msg">${a.message || a.type}</span>
+        </div>
+      `).join('');
+    }
+
+    function addAlert(alert) {
+      const container = document.getElementById('alerts-list');
+      const countEl = document.getElementById('alert-count');
+      const item = document.createElement('div');
+      item.className = `alert-item ${alert.severity || 'warning'}`;
+      item.innerHTML = `
+        <span class="alert-time">${new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}</span>
+        <span class="alert-msg">${alert.message}</span>
+      `;
+      container.insertBefore(item, container.firstChild);
+      countEl.textContent = parseInt(countEl.textContent) + 1;
+    }
+
+    function addToHistory(data) {
+      sensorHistory[data.type] = sensorHistory[data.type] || [];
+      sensorHistory[data.type].push({ value: data.value, time: Date.now() });
+      if (sensorHistory[data.type].length > 100) {
+        sensorHistory[data.type].shift();
+      }
+    }
+
+    function refreshDashboard() {
+      loadInitialData();
+    }
+
+    function toggleRule(id, enabled) {
+      fetch(`/api/rules/${id}/toggle`, { method: 'POST' })
+        .catch(console.error);
+    }
+
+    function exportHistory() {
+      window.open('/api/export', '_blank');
+    }
+
+    function showAddDevice() {
+      alert('Tính năng thêm thiết bị sẽ sớm ra mắt!');
+    }
+
+    function showAddRule() {
+      alert('Tính năng thêm quy tắc sẽ sớm ra mắt!');
+    }
+
+    // Init on load
+    document.addEventListener('DOMContentLoaded', initDashboard);
+  </script>
+
   <script src="app.js" defer></script>
 </body>
 </html>
