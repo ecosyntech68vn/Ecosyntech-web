@@ -37,6 +37,10 @@ jobs:
 
       - name: Build
         run: npm run build
+      - name: Install Pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+      - name: Generate Runbook PDF and Commit
+        run: bash scripts/generate_runbook_pdf.sh
       - name: PR All-In Release (auto)
         if: always()
         env:
