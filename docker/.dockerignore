@@ -1,0 +1,21 @@
+# Exclude node_modules directory
+node_modules/
+
+# Exclude Git directory
+.git/
+
+# Exclude logs
+logs/
+
+# Exclude coverage reports
+coverage/
+
+# Exclude environment files
+.env
+
+# Exclude unnecessary files
+.DS_Store
+Thumbs.db
+*~
+*.tmp
+*.bak
