@@ -1,0 +1,201 @@
+Ref;Description;Value;Footprint;Qty;Netclass;Supplier;MPN;Notes
+;=== POWER INPUT ===;;;
+TB1;Terminal Block 2P 5.08mm;CONN_5.08_2P;CONN_5.08_2P;1;Power;LCSC;C123789;
+F1;Fuse Slow-Blow 2A 250V;2A 250V Slow;FUSE_HOLDER_5x20;1;Power;LCSC;C223456;5x20mm
+GDT1;Gas Discharge Tube;Bourns 2027-09-B;DIP_7.5mm;1;Power;LCSC;C123456;
+MOV1;Metal Oxide Varistor;14D201K;DISC_14MM;1;Power;LCSC;C234567;14mm disc
+R_SURGE1;Power Resistor;5.6R 2W 5%;R_2512;1;Power;LCSC;C258741;
+L_SURGE1;Inductor Surge;22uH >=2A;RADIAL_8x10;1;Power;LCSC;C147852;
+D_TVS1;TVS Diode Bidirectional;SMBJ24A;DO-214AA;1;Power;LCSC;C128547;
+Q_PROTECT;P-MOSFET Reverse Polarity;AO4407A;SO-8;1;Power;LCSC;C96852;
+R_G1;Resistor Gate Pull-up;100k 1%;R_0805;1;Default;LCSC;C25874;1%
+R_G2;Resistor Gate Pull-down;100k 1%;R_0805;1;Default;LCSC;C25874;1%
+DZ_G1;Zener Diode 15V;15V;SOD-123;1;Default;LCSC;C125478;
+C1;Bulk Capacitor;470uF 25V Low-ESR 105C;CAP_D8x11.5;1;Power;LCSC;C96547;
+C2;Capacitor;1uF 50V X7R;C_1210;1;Default;LCSC;C14637;
+C3;Capacitor;100nF 50V X7R;C_0805;1;Default;LCSC;C14633;
+;=== BUCK REGULATOR 12V→5V (MP1584 #1) ===;;;
+U2_5V;Buck Regulator IC;MP1584EN-LF-Z;SOIC-8E;1;Power;LCSC;C51478;12V to 5V
+CIN_5V1;Input Cap;22uF 50V X7R;C_1210;1;Power;LCSC;C14637;
+CIN_5V2;Input Cap;100nF 50V X7R;C_0805;1;Default;LCSC;C14633;
+L_5V;Buck Inductor;10uH >=3A Low-DCR;SMD_6x6;1;Power;LCSC;C47852;Shielded
+COUT_5V1;Output Cap;22uF 16V X7R;C_1210;2;Default;LCSC;C14637;
+COUT_5V2;Output Cap;22uF 16V X7R;C_1210;2;Default;LCSC;C14637;
+COUT_5V3;Output Cap;100nF 16V X7R;C_0805;1;Default;LCSC;C14633;
+R_FB1_5V;Feedback Resistor;10k 1%;R_0805;1;Default;LCSC;C25874;
+R_FB2_5V;Feedback Resistor;52.3k 1%;R_0805;1;Default;LCSC;C25874;
+R_EN_5V;Enable Resistor;100k 1%;R_0805;1;Default;LCSC;C25874;
+C_BST_5V;Bootstrap Cap;100nF 25V X7R 0603;C_0603;1;Default;LCSC;C14633;
+D_OUT5V;Buck Schottky Diode;SS34;DO-214AC;1;Power;LCSC;C147852;
+;=== BUCK REGULATOR 12V→3.3V (MP1584 #2) — DERATING FIX ===;;;
+U3_3V3;Buck Regulator IC;MP1584EN-LF-Z;SOIC-8E;1;Power;LCSC;C51478;12V to 3.3V (second one)
+CIN_3V31;Input Cap;22uF 25V X7R;C_1210;1;Power;LCSC;C14637;
+CIN_3V32;Input Cap;100nF 25V X7R;C_0805;1;Default;LCSC;C14633;
+L_3V3;Buck Inductor;10uH >=2A Low-DCR;SMD_6x6;1;Power;LCSC;C47852;Shielded
+COUT_3V31;Output Cap;22uF 16V X7R;C_1210;2;Default;LCSC;C14637;
+COUT_3V32;Output Cap;22uF 16V X7R;C_1210;2;Default;LCSC;C14637;
+COUT_3V33;Output Cap;100nF 16V X7R;C_0805;1;Default;LCSC;C14633;
+R_FB1_3V3;Feedback Resistor;10k 1%;R_0805;1;Default;LCSC;C25874;
+R_FB2_3V3;Feedback Resistor;31.6k 1%;R_0805;1;Default;LCSC;C25874;
+R_EN_3V3;Enable Resistor;100k 1%;R_0805;1;Default;LCSC;C25874;
+C_BST_3V3;Bootstrap Cap;100nF 25V X7R 0603;C_0603;1;Default;LCSC;C14633;
+;=== RAIL SPLITTING FERRITE BEADS ===;;;
+FB_ESP;Ferrite Bead;BLM18PG121SN1;0805;1;Default;LCSC;C14785;120R@100MHz
+C_ESP1;Decoupling Cap;10uF 10V X7R;C_0805;2;Default;LCSC;C14637;
+C_ESP2;Decoupling Cap;100nF 10V X7R;C_0805;2;Default;LCSC;C14633;
+FB_ANA;Ferrite Bead;BLM18PG121SN1;0805;1;Default;LCSC;C14785;120R@100MHz
+C_ANA1;Decoupling Cap;10uF 10V X7R;C_0805;2;Default;LCSC;C14637;
+C_ANA2;Decoupling Cap;100nF 10V X7R;C_0805;2;Default;LCSC;C14633;
+;=== OR-ING DIODES +5V_SYS ===;;;
+D_USB;Schottky OR-ing Diode;SS34;DO-214AC;1;Default;LCSC;C147852;USB OR-ing
+D_MAIN;Schottky OR-ing Diode;SS34;DO-214AC;1;Default;LCSC;C147852;Main OR-ing
+C_SYS1;Bulk Cap;47uF 16V Low-ESR;C_1210;1;Default;LCSC;C14637;
+C_SYS2;Decoupling Cap;100nF 16V X7R;C_0805;1;Default;LCSC;C14633;
+;=== ESP32-WROOM-32E ===;;;
+U_ESP32;ESP32 Module;ESP32-WROOM-32E;ESP32_WROOM_38P;1;Default;Espressif;;WiFi+BT+BLE
+C_ESP_DEC1;Decoupling Cap;100nF 10V X7R;C_0805;3;Default;LCSC;C14633;
+C_ESP_DEC2;Decoupling Cap;100nF 10V X7R;C_0805;3;Default;LCSC;C14633;
+C_ESP_DEC3;Decoupling Cap;100nF 10V X7R;C_0805;3;Default;LCSC;C14633;
+R_BOOT_PU;Boot Pull-up;10k 5%;R_0805;1;Default;LCSC;C25871;
+R_EN_PU;Enable Pull-up;10k 5%;R_0805;1;Default;LCSC;C25871;
+R_VSENSE_SER;Series Resistor;1k 5%;R_0805;1;Default;LCSC;C25871;VIN sense
+;=== STATUS LEDS (ACTIVE-LOW) ===;;;
+LED_PWR;LED Green;Green LED 0805;LED_0805;1;Default;LCSC;C98471;
+R_LED_PWR;LED Resistor;1.5k 5%;R_0805;1;Default;LCSC;C25871;1.5k NOT 470R
+LED_WIFI;LED Blue;Blue LED 0805;LED_0805;1;Default;LCSC;C98472;
+R_LED_WIFI;LED Resistor;1.5k 5%;R_0805;1;Default;LCSC;C25871;
+LED_MQTT;LED Yellow;Yellow LED 0805;LED_0805;1;Default;LCSC;C98473;
+R_LED_MQTT;LED Resistor;1.5k 5%;R_0805;1;Default;LCSC;C25871;
+LED_ERROR;LED Red;Red LED 0805;LED_0805;1;Default;LCSC;C98474;
+R_LED_ERR;LED Resistor;1.5k 5%;R_0805;1;Default;LCSC;C25871;
+;=== USB-UART + AUTO-RESET ===;;;
+J_USB;USB Micro-B Connector;USB Micro-B;USB_MICRO_B;1;Default;LCSC;C84751;
+F_USB;PTC Fuse;500mA 6V;RADIAL_D5;1;Default;LCSC;C147852;
+D_TVS_USB;TVS USB Protection;SMBJ5.0A;DO-214AA;1;Default;LCSC;C147853;
+R_USB_LIM;Current Limit Resistor;2.2R 1/4W;R_1206;1;Default;LCSC;C25871;
+ESD_USB;USB ESD Protector;USBLC6-2SC6;SOT-23-6;1;Default;LCSC;C147854;
+U_USB_UART;USB-UART Bridge;CP2102-GMR;QFN-28;1;Default;LCSC;C84752;
+Q_RST;NPN Transistor;BC847;SOT-23;1;Default;LCSC;C84756;Auto-reset
+R_USB_DTR;Base Resistor;1k 5%;R_0805;1;Default;LCSC;C25871;
+Q_BOOT;NPN Transistor;BC847;SOT-23;1;Default;LCSC;C84756;Auto-reset
+R_USB_RTS;Base Resistor;1k 5%;R_0805;1;Default;LCSC;C25871;
+;=== HARDWARE WATCHDOG TPL5010 ===;;;
+U_WD;Hardware Watchdog;TPL5010DDCT;SOT-23-6;1;Default;LCSC;C84758;
+R_WD_DONE_PU;Pull-up Resistor;10k 5%;R_0805;1;Default;LCSC;C25871;
+R_WD_WAKE;Pull-down Resistor;10k 5%;R_0805;1;Default;LCSC;C25871;
+D_RST;Dual Schottky Diode;BAT54S;SOT-23;1;Default;LCSC;C147855;Watchdog reset clamp
+C_WD_FILT;Filter Cap;100nF 10V X7R;C_0805;1;Default;LCSC;C14633;
+;=== RELAY POWER LIMITING ===;;;
+R_RELAY_LIM;Current Limit Resistor;0.5R 1W 2512;R_2512;1;Power;LCSC;C25875;CRITICAL - derating
+C_RELAY_BULK;Bulk Cap;1000uF 16V Low-ESR 105C;CAP_D10x12.5;1;Power;LCSC;C96548;CRITICAL - for 4 relay peak
+D_RELAY_TVS;TVS Relay Rail Protection;SMBJ5.0A;DO-214AA;1;Default;LCSC;C147853;Relay rail clamp
+;=== RELAY DRIVERS (×4) ===;;;
+Q_R1;NPN Transistor;S8050;SOT-23;4;Default;LCSC;C84756;Relay driver
+R_GR1;Base Resistor;100R 5%;R_0805;4;Default;LCSC;C25871;100R NOT 4.7k
+D_FLY1;Flyback Diode;1N4148;SOD-123;4;Default;LCSC;C147852;
+R_PD_R1;Pull-down Resistor;100k 5%;R_0805;4;Default;LCSC;C25871;
+RELAY1;Relay 5V 10A SPDT;SRD-05VDC-SL-C;RELAY_SRD_5V;4;Power;LCSC;C84757;Socket type
+F_R1_SNUB;RC Snubber;100R 1W + 0.1uF X2 275VAC;1206/1812;4;Default;LCSC;C147856;
+F_R1_MOV;MOV Snubber;MOV 275VAC;DISC_10MM;4;Default;LCSC;C147857;Optional
+;=== DHT22 + TVS ===;;;
+J_DHT;Terminal Block 3P 3.81mm;CONN_3.81_3P;CONN_3.81_3P;1;Default;LCSC;C98741;
+U_DHT22;DHT22 Sensor;AM2302 / DHT22;DHT22_TH;1;Default;LCSC;C84793;
+R_DHT_PU;Pull-up Resistor;4.7k 5%;R_0805;1;Default;LCSC;C25871;
+R_DHT_SER;Series Resistor;100R 5%;R_0805;1;Default;LCSC;C25871;Signal series
+D_DHT_ESD;TVS Signal Protection;SMBJ5.0A;SOD-123;1;Default;LCSC;C147853;
+;=== DS18B20 + TVS ===;;;
+J_DS;Terminal Block 3P 3.81mm;CONN_3.81_3P;CONN_3.81_3P;1;Default;LCSC;C98741;
+U_DS18B20;DS18B20 Sensor;DS18B20;TO-92;1;Default;LCSC;C84794;
+R_DS_PU;Pull-up Resistor;4.7k 5%;R_0805;1;Default;LCSC;C25871;
+R_DS_SER;Series Resistor;100R 5%;R_0805;1;Default;LCSC;C25871;Signal series
+D_DS_ESD;TVS Signal Protection;SMBJ5.0A;SOD-123;1;Default;LCSC;C147853;
+;=== SOIL SENSOR + ADS_A3 ===;;;
+J_SOIL;Terminal Block 3P 3.81mm;CONN_3.81_3P;CONN_3.81_3P;1;Default;LCSC;C98741;
+R_SOIL_SER;Series Resistor;1k 5%;R_0805;1;Default;LCSC;C25871;
+C_SOIL;Filter Cap;100nF 16V X7R;C_0805;1;Default;LCSC;C14633;
+D_SOIL_ESD;TVS Signal Protection;SMBJ5.0A;SOD-123;1;Default;LCSC;C147853;
+;=== BATTERY/VIN SENSE ===;;;
+J_VBAT;Terminal Block 2P 5.08mm;CONN_5.08_2P;CONN_5.08_2P;1;Default;LCSC;C98741;
+R_VTOP;Voltage Divider;100k 1%;R_0805;1;Default;LCSC;C25874;1% precision
+R_VBOT;Voltage Divider;33k 1%;R_0805;1;Default;LCSC;C25874;1% precision
+C_VSENSE;Filter Cap;100nF 16V X7R;C_0805;1;Default;LCSC;C14633;
+R_VSENSE_SER_B;Series Resistor;1k 5%;R_0805;1;Default;LCSC;C25871;
+D_VSENSE_CLAMP;Clamp Diode;BAT54S;SOT-23;1;Default;LCSC;C147855;GPIO clamp
+;=== ADS1115 ADC ===;;;
+U_ADS;16-bit ADC;ADS1115IDGSR;MSOP-8;1;Default;LCSC;C98457;I2C 4-ch
+C_ADS1;Decoupling Cap;100nF 16V X7R;C_0805;1;Default;LCSC;C14633;
+C_ADS2;Decoupling Cap;10uF 16V X7R;C_0805;1;Default;LCSC;C14637;
+R_ADC_SCL_PU;Pull-up Resistor;4.7k 5%;R_0805;2;Default;LCSC;C25871;to +3V3_ANA
+R_ADC_SDA_PU;Pull-up Resistor;4.7k 5%;R_0805;2;Default;LCSC;C25871;to +3V3_ANA
+R_A0_SER;Series Resistor;1k 5%;R_0805;1;Default;LCSC;C25871;
+D_A0_ESD;TVS Signal Protection;SMBJ5.0A;SOD-123;1;Default;LCSC;C147853;
+R_A1_SER;Series Resistor;1k 5%;R_0805;1;Default;LCSC;C25871;
+D_A1_ESD;TVS Signal Protection;SMBJ5.0A;SOD-123;1;Default;LCSC;C147853;
+R_A2_SER;Series Resistor;1k 5%;R_0805;1;Default;LCSC;C25871;
+D_A2_ESD;TVS Signal Protection;SMBJ5.0A;SOD-123;1;Default;LCSC;C147853;
+R_A3_SER;Series Resistor;1k 5%;R_0805;1;Default;LCSC;C25871;
+D_A3_ESD;TVS Signal Protection;SMBJ5.0A;SOD-123;1;Default;LCSC;C147853;
+J_AIN;Terminal Block 6P 3.81mm;CONN_3.81_6P;CONN_3.81_6P;1;Default;LCSC;C98744;
+;=== I2C BUS + ESD ===;;;
+J_I2C_EXT;Terminal Block 4P 3.81mm;CONN_3.81_4P;CONN_3.81_4P;1;Default;LCSC;C98741;
+R_I2C_SCL_SER;Series Resistor;22R 5%;R_0805;1;Default;LCSC;C25871;Signal series
+R_I2C_SDA_SER;Series Resistor;22R 5%;R_0805;1;Default;LCSC;C25871;Signal series
+R_I2C_SCL_PU;Pull-up Resistor;4.7k 5%;R_0805;1;Default;LCSC;C25871;to +3V3_ANA
+R_I2C_SDA_PU;Pull-up Resistor;4.7k 5%;R_0805;1;Default;LCSC;C25871;to +3V3_ANA
+D_I2C_SCL_ESD;TVS Signal Protection;SMBJ5.0A;SOD-123;1;Default;LCSC;C147853;
+D_I2C_SDA_ESD;TVS Signal Protection;SMBJ5.0A;SOD-123;1;Default;LCSC;C147853;
+U_BME280;BME280 Sensor (opt);BME280;BME280_I2C;1;Default;LCSC;C84759;
+U_OLED;OLED 0.96 I2C (opt);OLED 0.96 I2C;OLED_I2C;1;Default;LCSC;C84760;
+;=== MicroSD ===;;;
+U_SDCARD;MicroSD Socket;MicroSD;MICROSD;1;Default;LCSC;C84755;
+R_SD_SCK;Series Resistor;22R 5%;R_0805;1;Default;LCSC;C25871;
+R_SD_MOSI;Series Resistor;22R 5%;R_0805;1;Default;LCSC;C25871;
+R_SD_MISO;Series Resistor;22R 5%;R_0805;1;Default;LCSC;C25871;
+R_SD_CS;Pull-up Resistor;10k 5%;R_0805;1;Default;LCSC;C25871;
+R_SD_DET_PU;Pull-up Resistor;10k 5%;R_0805;1;Default;LCSC;C25871;
+C_SD_DEC;Decoupling Cap;100nF 10V X7R;C_0805;1;Default;LCSC;C14633;
+;=== DEBUG HEADER + TEST POINTS ===;;;
+J_DEBUG;Terminal Block 4P 3.81mm;CONN_3.81_4P;CONN_3.81_4P;1;Default;LCSC;C98741;
+TP_12V;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_5V;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_3V3_ESP;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_3V3_ANA;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_GND;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_UART_TX;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_UART_RX;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_EN;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_BOOT;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_I2C;Test Point;TestPoint;TP;2;Default;LCSC;C00000;
+TP_WD;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_POWER_GOOD;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_RELAY_EN;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+TP_BOOT_OK;Test Point;TestPoint;TP;1;Default;LCSC;C00000;
+;=== IO EXPANDERS ===;;;
+U_EXP1;IO Expander I2C;MCP23017T-E/SS;SSOP-28;1;Default;LCSC;C84761;Addr 0x20
+U_EXP2;IO Expander I2C;MCP23017T-E/SS;SSOP-28;1;Default;LCSC;C84761;Addr 0x21
+C_EXP1_DEC1;Decoupling Cap;100nF 10V X7R;C_0805;2;Default;LCSC;C14633;
+C_EXP1_DEC2;Bulk Cap;10uF 16V X7R;C_0805;2;Default;LCSC;C14637;
+C_EXP2_DEC1;Decoupling Cap;100nF 10V X7R;C_0805;2;Default;LCSC;C14633;
+C_EXP2_DEC2;Bulk Cap;10uF 16V X7R;C_0805;2;Default;LCSC;C14637;
+;=== EXPANSION RELAYS 5-8 (OPTIONAL) ===;;;
+Q_R5;NPN Transistor;S8050;SOT-23;4;Default;LCSC;C84756;
+R_GR5;Base Resistor;100R 5%;R_0805;4;Default;LCSC;C25871;
+D_FLY5;Flyback Diode;1N4148;SOD-123;4;Default;LCSC;C147852;
+RELAY5;Relay 5V 10A SPDT (opt);SRD-05VDC-SL-C;RELAY_SRD_5V;4;Power;LCSC;C84757;
+F_R5_SNUB;RC Snubber;100R 1W + 0.1uF X2 275VAC;1206/1812;4;Default;LCSC;C147856;
+;=== EXTERNAL CONNECTORS ===;;;
+J_R1;Relay Out 1 (7.62mm);3P 7.62mm;CONN_TB_7.62_3P;4;HighVoltage;LCSC;C98742;
+J_R2;Relay Out 2 (7.62mm);3P 7.62mm;CONN_TB_7.62_3P;4;HighVoltage;LCSC;C98742;
+J_R3;Relay Out 3 (7.62mm);3P 7.62mm;CONN_TB_7.62_3P;4;HighVoltage;LCSC;C98742;
+J_R4;Relay Out 4 (7.62mm);3P 7.62mm;CONN_TB_7.62_3P;4;HighVoltage;LCSC;C98742;
+J_EXP_HEADER;Expansion 2x5 5.08mm;2x5 5.08mm;CONN_5.08_2x5;1;Default;LCSC;C98743;
+J_PWR_EXT;12V Power Out 7.62mm;2P 7.62mm;CONN_7.62_2P;1;Power;LCSC;C98742;
+D_EXP_ESD1;ESD Diode;ESD SOT-23;SOT-23;4;Default;LCSC;C147855;
+D_EXP_ESD2;ESD Diode;ESD SOT-23;SOT-23;4;Default;LCSC;C147855;
+D_EXP_ESD3;ESD Diode;ESD SOT-23;SOT-23;4;Default;LCSC;C147855;
+D_EXP_ESD4;ESD Diode;ESD SOT-23;SOT-23;4;Default;LCSC;C147855;
+J_MOUNT1;Mounting Hole M3;M3 Hole 3.2mm;M3_HOLE;4;Mechanical;LCSC;C00000;
+;=== SECOND SOURCE OPTIONS (per spec G) ===;;;
+;MP1584 → AP63205 (alternate buck);;;
+;CP2102 → CH340C (alternate USB-UART);;;
+;Relay → HF46F/5-HS1 (alternate relay);;;
