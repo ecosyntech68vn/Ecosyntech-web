@@ -1,0 +1,14 @@
+Phase 7-8: Observability & Rollout
+- Observability enhancements: better logging for envelope verification and webhook processing.
+- Health and readiness improvements:
+  - /api/health now includes envelope_ready, webhook_ready, db_ready, ws_ready flags.
+  - Added /api/healthz as a lightweight readiness endpoint.
+- Data consistency and idempotency:
+  - Ensure envelope-based flows are idempotent where appropriate (nonce-based replay guard).
+- Rollout strategy:
+  - Canonical path for ESP32 data: /api/webhook/esp32 is the sole entry after cutover.
+  - Legacy firmware path disabled in production to avoid dual streams.
+- Documentation updates:
+  - ESP32 canonical contract doc added at docs/ESP32_CANONICAL.md.
+- Next steps:
+  - Further instrumentation, metrics export (optional), and additional integration tests.

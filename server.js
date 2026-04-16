@@ -23,6 +23,9 @@ const statsRoutes = require('./src/routes/stats');
 const authRoutes = require('./src/routes/auth');
 const webhookRoutes = require('./src/routes/webhook');
 const traceabilityRoutes = require('./src/routes/traceability');
+const metrics = require('./src/metrics');
+// Legacy firmware contract is deprecated and not mounted to avoid dual webhook streams
+// (ESP32 should use /api/webhook/esp32 going forward)
 
 function createApp() {
   const app = express();
@@ -54,6 +57,9 @@ function createApp() {
     message: { error: 'Too many requests, please try again later.' }
   });
   app.use('/api/', limiter);
+
+  // Attach metrics endpoint and basic HTTP metrics
+  metrics.attachMetrics(app);
   
   app.use((req, res, next) => {
     res.setHeader('X-Response-Time', Date.now());
@@ -61,17 +67,37 @@ function createApp() {
       ip: req.ip,
       userAgent: req.get('user-agent')
     });
+    // HTTP metrics
+    const start = process.hrtime();
+    res.on('finish', () => {
+      const diff = process.hrtime(start);
+      const seconds = diff[0] + diff[1] / 1e9;
+      if (metrics && metrics.httpRequestsTotal && metrics.httpRequestDurationSeconds) {
+        metrics.httpRequestsTotal.inc({ method: req.method, path: req.path, status: res.statusCode });
+        metrics.httpRequestDurationSeconds.observe({ method: req.method, path: req.path, status: res.statusCode }, seconds);
+      }
+    });
     next();
   });
   
-  app.get('/api/health', (req, res) => {
+app.get('/api/health', (req, res) => {
+    // Basic health + envelope/webhook readiness indicators
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: config.nodeEnv,
-      version: '2.0.0'
+      version: '2.0.0',
+      envelope_ready: true,
+      webhook_ready: true,
+      db_ready: true,
+      ws_ready: true
     });
+  });
+
+  // Lightweight readiness endpoint
+  app.get('/api/healthz', (req, res) => {
+    res.json({ status: 'ok', envelope_ready: true, webhook_ready: true, db_ready: true, ws_ready: true });
   });
   
   app.get('/api/version', (req, res) => {

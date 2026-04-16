@@ -1,99 +1,98 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const { signEnvelope } = require('../utils/envelope');
+const metrics = require('../metrics');
 const { runQuery, getOne, getAll } = require('../config/database');
 const logger = require('../config/logger');
 
-const HMAC_SECRET = process.env.HMAC_SECRET || 'CEOTAQUANGTHUAN_TADUYANH_CTYTNHHDUYANH_ECOSYNTECH_2026';
-
-function computeHmacSha256(message, key) {
-  return crypto.createHmac('sha256', key).update(message).digest('hex');
-}
-
-function canonicalStringify(obj) {
-  if (obj === null || obj === undefined) return 'null';
-  if (typeof obj !== 'object') return String(obj);
-  if (Array.isArray(obj)) {
-    return '[' + obj.map(canonicalStringify).join(',') + ']';
-  }
-  const keys = Object.keys(obj).sort();
-  const pairs = keys.map(k => `"${k}":${canonicalStringify(obj[k])}`);
-  return '{' + pairs.join(',') + '}';
-}
-
-function verifySignature(payload, signature, secret) {
-  const canonical = canonicalStringify(payload);
-  const expected = computeHmacSha256(canonical, secret);
-  return signature === expected;
-}
+// Legacy HMAC-based verification is now delegated to shared envelope utilities.
 
 // POST /api/webhook/esp32 - Nhận data từ ESP32 V8.5.0
 router.post('/esp32', async (req, res) => {
   try {
     const { payload, signature } = req.body;
-    
     if (!payload || !signature) {
       return res.status(400).json({ error: 'Missing payload or signature' });
     }
-
-    // Verify HMAC signature
-    if (!verifySignature(payload, signature, HMAC_SECRET)) {
-      logger.warn('[Webhook] Invalid signature');
-      return res.status(401).json({ error: 'Invalid signature' });
+    // Envelope-based verification
+    const verification = require('../utils/envelope').verifyEnvelope(payload, signature);
+    const route = '/api/webhook/esp32';
+    if (!verification.valid) {
+      metrics.envelopeVerificationsTotal.inc({ outcome: 'failure' });
+      metrics.envelopeVerificationsByRoute.inc({ route, outcome: 'failure' });
+      return res.status(401).json({ error: verification.error });
     }
+    metrics.envelopeVerificationsTotal.inc({ outcome: 'success' });
+    metrics.envelopeVerificationsByRoute.inc({ route, outcome: 'success' });
 
-    const { device_id, fw_version, readings, timestamp, _nonce, _ts } = payload;
-
-    if (!device_id) {
+    // Resolve device id and firmware version with backward-compatible fields
+    const deviceId = String(payload._did || payload.device_id || '');
+    const fwVersion = String(payload.fw_version || payload.fw || '8.5.0');
+    const readings = Array.isArray(payload.readings) ? payload.readings : [];
+    if (!deviceId && !payload.device_id) {
       return res.status(400).json({ error: 'Missing device_id' });
     }
 
-    logger.info(`[Webhook] Data from ${device_id} (FW: ${fw_version})`);
+    logger.info(`[Webhook] Data from ${deviceId || payload.device_id} (FW: ${fwVersion})`);
 
     // Update or create device
-    const existingDevice = getOne('SELECT * FROM devices WHERE id = ?', [device_id]);
+    const existingDevice = getOne('SELECT * FROM devices WHERE id = ?', [deviceId]);
     if (!existingDevice) {
       runQuery(
         'INSERT INTO devices (id, name, type, zone, status, config, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [device_id, `EcoSynTech-${device_id}`, 'ESP32', 'default', 'online', '{}', new Date().toISOString()]
+        [deviceId, `EcoSynTech-${deviceId}`, 'ESP32', 'default', 'online', '{}', new Date().toISOString()]
       );
     } else {
       runQuery(
         'UPDATE devices SET status = ?, last_seen = ? WHERE id = ?',
-        ['online', new Date().toISOString(), device_id]
+        ['online', new Date().toISOString(), deviceId]
       );
     }
 
     // Process sensor readings
     if (readings && Array.isArray(readings)) {
       for (const reading of readings) {
-        const { sensor, value, unit } = reading;
-        
-        if (sensor && value !== undefined) {
-          // Update or insert sensor reading
-          const existingSensor = getOne('SELECT * FROM sensors WHERE type = ? AND sensor_id = ?', [sensor, device_id]);
-          if (existingSensor) {
-            runQuery(
-              'UPDATE sensors SET value = ?, unit = ?, timestamp = ? WHERE type = ? AND sensor_id = ?',
-              [value, unit || '', new Date().toISOString(), sensor, device_id]
-            );
-          } else {
-            runQuery(
-              'INSERT INTO sensors (id, type, value, unit, sensor_id) VALUES (?, ?, ?, ?, ?)',
-              [`${device_id}-${sensor}`, sensor, value, unit || '', device_id]
-            );
-          }
-          
-          logger.info(`[Webhook] ${sensor}=${value}${unit || ''} from ${device_id}`);
+        const sensor = String(reading.sensor_type || reading.sensor || reading.type || '').trim();
+        const value = Number(reading.value);
+        if (!sensor || Number.isNaN(value)) continue;
+        const unit = String(reading.unit || '');
+        const sensorId = `${deviceId}-${sensor}`;
+
+        const existingSensor = getOne('SELECT * FROM sensors WHERE id = ?', [sensorId]);
+        if (existingSensor) {
+          runQuery('UPDATE sensors SET value = ?, unit = ?, timestamp = ? WHERE id = ?', [value, unit, new Date().toISOString(), sensorId]);
+        } else {
+          runQuery('INSERT INTO sensors (id, type, value, unit) VALUES (?, ?, ?, ?)', [sensorId, sensor, value, unit]);
         }
+        logger.info(`[Webhook] ${sensor}=${value}${unit || ''} from ${deviceId}`);
       }
     }
 
-    res.json({
-      status: 'ok',
-      received: { device_id, readings_count: readings?.length || 0 },
-      timestamp: new Date().toISOString()
-    });
+    const responsePayload = {
+      ok: true,
+      device_id: deviceId,
+      fw_version: fwVersion,
+      server_ts: new Date().toISOString(),
+      processed: { readings: readings.length }
+    };
+    if (payload.get_commands) responsePayload.commands = getPendingCommandsPayload(deviceId);
+    if (payload.get_config) {
+      responsePayload.config = {
+        post_interval_sec: 600,
+        sensor_interval_sec: 600,
+        deep_sleep_enabled: true,
+        config_version: 6,
+        server_url: process.env.API_BASE_URL || 'http://localhost:3000'
+      };
+    }
+    if (payload.get_batch) {
+      responsePayload.batches = getBatchesForDevice(deviceId);
+      responsePayload.rules = getRulesForDevice(deviceId);
+    }
+    const envelope = signEnvelope(responsePayload);
+    // Optional: instrument envelope sign latency could be added here
+    return res.json(envelope);
 
   } catch (err) {
     logger.error('[Webhook] Error:', err);
@@ -105,42 +104,41 @@ router.post('/esp32', async (req, res) => {
 router.post('/batch', async (req, res) => {
   try {
     const { payload, signature } = req.body;
-    
     if (!payload || !signature) {
       return res.status(400).json({ error: 'Missing payload or signature' });
     }
-
-    if (!verifySignature(payload, signature, HMAC_SECRET)) {
-      return res.status(401).json({ error: 'Invalid signature' });
+    const verification = require('../utils/envelope').verifyEnvelope(payload, signature);
+    const route = '/api/webhook/batch';
+    if (!verification.valid) {
+      metrics.envelopeVerificationsTotal.inc({ outcome: 'failure' });
+      metrics.envelopeVerificationsByRoute.inc({ route, outcome: 'failure' });
+      return res.status(401).json({ error: verification.error });
     }
+    metrics.envelopeVerificationsTotal.inc({ outcome: 'success' });
+    metrics.envelopeVerificationsByRoute.inc({ route, outcome: 'success' });
 
     const { device_id, batches, config, rules } = payload;
 
     logger.info(`[Webhook] Batch config from ${device_id}`);
 
-    // Return server-side configuration
-    const response = {
-      payload: {
-        batches: getBatchesForDevice(device_id),
-        config: {
-          rules: getRulesForDevice(device_id),
-          settings: {
-            post_interval_sec: 3600,
-            sensor_interval_sec: 60,
-            deep_sleep_enabled: false
-          }
-        },
-        _nonce: crypto.randomBytes(16).toString('hex'),
-        _ts: Math.floor(Date.now() / 1000),
-        _did: device_id
-      }
+    // Return server-side configuration (canonical envelope)
+    const responsePayload = {
+      batches: getBatchesForDevice(device_id),
+      config: {
+        rules: getRulesForDevice(device_id),
+        settings: {
+          post_interval_sec: 3600,
+          sensor_interval_sec: 60,
+          deep_sleep_enabled: false
+        }
+      },
+      _nonce: crypto.randomBytes(16).toString('hex'),
+      _ts: Math.floor(Date.now() / 1000),
+      _did: device_id
     };
 
-    // Compute signature for response
-    const canonical = canonicalStringify(response.payload);
-    response.signature = computeHmacSha256(canonical, HMAC_SECRET);
-
-    res.json(response);
+    const envelopeResp = signEnvelope(responsePayload);
+    res.json(envelopeResp);
 
   } catch (err) {
     logger.error('[Webhook] Batch error:', err);
@@ -167,11 +165,8 @@ router.post('/command', async (req, res) => {
 
     logger.info(`[Webhook] Command ${command} queued for ${device_id}`);
 
-    res.json({
-      status: 'ok',
-      command_id: commandId,
-      timestamp: new Date().toISOString()
-    });
+    const payloadOut = { status: 'ok', command_id: commandId, timestamp: new Date().toISOString() };
+    res.json(signEnvelope(payloadOut));
 
   } catch (err) {
     logger.error('[Webhook] Command error:', err);
@@ -199,23 +194,19 @@ router.get('/command/:deviceId', async (req, res) => {
       runQuery('UPDATE commands SET status = \'delivered\' WHERE id = ?', [cmd.id]);
     }
 
-    const response = {
-      payload: {
-        commands: pendingCommands.map(c => ({
-          command: c.command,
-          command_id: c.id,
-          params: JSON.parse(c.params || '{}')
-        })),
-        _nonce: crypto.randomBytes(16).toString('hex'),
-        _ts: Math.floor(Date.now() / 1000),
-        _did: deviceId
-      }
+    const responsePayload = {
+      commands: pendingCommands.map(c => ({
+        command: c.command,
+        command_id: c.id,
+        params: JSON.parse(c.params || '{}')
+      })),
+      _did: deviceId,
+      _ts: Math.floor(Date.now() / 1000),
+      _nonce: crypto.randomBytes(16).toString('hex')
     };
 
-    const canonical = canonicalStringify(response.payload);
-    response.signature = computeHmacSha256(canonical, HMAC_SECRET);
-
-    res.json(response);
+    const envelopeResp = signEnvelope(responsePayload);
+    res.json(envelopeResp);
 
   } catch (err) {
     logger.error('[Webhook] Fetch commands error:', err);
@@ -227,10 +218,15 @@ router.get('/command/:deviceId', async (req, res) => {
 router.post('/command-result', async (req, res) => {
   try {
     const { payload, signature } = req.body;
-    
-    if (!verifySignature(payload, signature, HMAC_SECRET)) {
-      return res.status(401).json({ error: 'Invalid signature' });
+    const verification = require('../utils/envelope').verifyEnvelope(payload, signature);
+    const route = '/api/webhook/command-result';
+    if (!verification.valid) {
+      metrics.envelopeVerificationsTotal.inc({ outcome: 'failure' });
+      metrics.envelopeVerificationsByRoute.inc({ route, outcome: 'failure' });
+      return res.status(401).json({ error: verification.error });
     }
+    metrics.envelopeVerificationsTotal.inc({ outcome: 'success' });
+    metrics.envelopeVerificationsByRoute.inc({ route, outcome: 'success' });
 
     const { device_id, command_id, status, note } = payload;
 
@@ -241,7 +237,7 @@ router.post('/command-result', async (req, res) => {
       );
     }
 
-    res.json({ status: 'ok' });
+    res.json(signEnvelope({ status: 'ok' }));
 
   } catch (err) {
     logger.error('[Webhook] Command result error:', err);
@@ -261,6 +257,25 @@ function getRulesForDevice(deviceId) {
     'SELECT * FROM rules WHERE device_id = ? AND enabled = 1',
     [deviceId]
   );
+}
+
+function getPendingCommandsPayload(deviceId) {
+  const pending = getAll(
+    'SELECT * FROM commands WHERE device_id = ? AND status = "pending" ORDER BY created_at ASC LIMIT 10',
+    [deviceId]
+  );
+
+  const commands = pending.map(cmd => ({
+    command_id: cmd.id,
+    command: cmd.command,
+    params: JSON.parse(cmd.params || '{}')
+  }));
+
+  pending.forEach(cmd => {
+    runQuery('UPDATE commands SET status = "sent", delivered_at = ? WHERE id = ?', [new Date().toISOString(), cmd.id]);
+  });
+
+  return commands;
 }
 
 module.exports = router;

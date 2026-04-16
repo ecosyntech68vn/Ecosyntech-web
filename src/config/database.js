@@ -8,6 +8,32 @@ const logger = require('./logger');
 let db = null;
 let SQL = null;
 
+function backupCurrentDatabase() {
+  try {
+    if (!db) return null;
+    const src = config.database.path;
+    const dir = path.dirname(src);
+    const base = path.basename(src);
+    const backupDir = path.resolve(dir, 'backups');
+    if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupPath = path.resolve(backupDir, `${base}.backup.${ts}.sqlite`);
+    // Copy the file (db.export() would require a separate in-memory approach)
+    try {
+      if (fs.existsSync(src)) {
+        fs.copyFileSync(src, backupPath);
+        logger.info(`[Migration] DB backup created at ${backupPath}`);
+      }
+    } catch (err) {
+      logger.warn('[Migration] DB backup skipped (copy failed):', err?.message);
+    }
+    return backupPath;
+  } catch (err) {
+    logger.error('[Migration] backupCurrentDatabase error:', err);
+    return null;
+  }
+}
+
 async function initDatabase() {
   const dbDir = path.dirname(config.database.path);
   
@@ -28,10 +54,46 @@ async function initDatabase() {
 
   createTables();
   seedInitialData();
+  applyMigrations();
   saveDatabase();
   
   logger.info('Database initialized successfully');
   return db;
+}
+
+// Phase 9 migration: sensor schema alignment
+function applyMigrations() {
+  try {
+    // Phase 9: before applying, create a safe backup in same directory as DB
+    if (typeof backupCurrentDatabase === 'function') {
+      try { backupCurrentDatabase(); } catch (e) { logger.info('[Migration] backup failed (optional) ' + e?.message); }
+    }
+    db.run(`CREATE TABLE IF NOT EXISTS migrations (
+      name TEXT PRIMARY KEY,
+      applied_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`);
+    const applied = getOne('SELECT 1 FROM migrations WHERE name = ?', ['phase9_sensor_schema']);
+    if (applied) {
+      logger.info('[Migration] phase9_sensor_schema already applied');
+      return;
+    }
+    try { db.run('ALTER TABLE sensors ADD COLUMN sensor_id TEXT'); } catch (e) { /* ignore if exists */ }
+    try {
+      const rows = getAll('SELECT id FROM sensors');
+      rows.forEach(row => {
+        const idVal = String(row.id);
+        const dash = idVal.lastIndexOf('-');
+        if (dash > 0) {
+          const deviceId = idVal.substring(0, dash);
+          try { db.run('UPDATE sensors SET sensor_id = ? WHERE id = ?', [deviceId, idVal]); } catch (err) { /* ignore per-row errors */ }
+        }
+      });
+    } catch (err) { /* ignore */ }
+    db.run('INSERT INTO migrations (name) VALUES (\'phase9_sensor_schema\')');
+    logger.info('[Migration] phase9_sensor_schema applied');
+  } catch (err) {
+    logger.error('[Migration] phase9_sensor_schema failure:', err);
+  }
 }
 
 function saveDatabase() {
@@ -75,7 +137,7 @@ function createTables() {
   db.run(`
     CREATE TABLE IF NOT EXISTS sensors (
       id TEXT PRIMARY KEY,
-      type TEXT UNIQUE NOT NULL,
+      type TEXT NOT NULL,
       value REAL NOT NULL,
       unit TEXT NOT NULL,
       min_value REAL,
@@ -404,6 +466,36 @@ function closeDatabase() {
   }
 }
 
+function exportDatabase(filePath) {
+  if (!db) throw new Error('Database not initialized');
+  const data = db.export();
+  const buffer = Buffer.from(data);
+  fs.writeFileSync(filePath, buffer);
+  logger.info(`Database exported to ${filePath}`);
+}
+
+function importFromFile(filePath) {
+  if (!fs.existsSync(filePath)) throw new Error('Backup file not found');
+  const buffer = fs.readFileSync(filePath);
+  const SQL = require('sql.js');
+  db = new SQL.Database(buffer);
+  logger.info(`Database imported from ${filePath}`);
+  saveDatabase();
+}
+
+function statusReport() {
+  const counts = {
+    devices: getAll('SELECT * FROM devices').length,
+    sensors: getAll('SELECT * FROM sensors').length,
+    rules: getAll('SELECT * FROM rules').length,
+    schedules: getAll('SELECT * FROM schedules').length,
+    history: getAll('SELECT * FROM history').length,
+    alerts: getAll('SELECT * FROM alerts').length,
+    commands: getAll('SELECT * FROM commands').length
+  };
+  return counts;
+}
+
 module.exports = {
   initDatabase,
   getDatabase,
@@ -411,5 +503,10 @@ module.exports = {
   runQuery,
   getOne,
   getAll,
-  saveDatabase
+  saveDatabase,
+  exportDatabase,
+  importFromFile,
+  statusReport,
+  applyMigrations,
+  backupCurrentDatabase
 };

@@ -103,49 +103,24 @@ function apiKeyAuth(req, res, next) {
   next();
 }
 
-// HMAC signature authentication for ESP32
+// HMAC signature authentication for ESP32 (envelope-based)
 function hmacAuth(req, res, next) {
-  const signature = req.headers['x-signature'] || req.body?.signature;
-  const timestamp = req.headers['x-timestamp'] || req.body?.payload?._ts;
-  
-  if (!signature || !timestamp) {
-    return res.status(401).json({ error: 'Signature and timestamp required' });
-  }
-
-  // Check timestamp is within 5 minutes
-  const now = Math.floor(Date.now() / 1000);
-  if (Math.abs(now - parseInt(timestamp)) > 300) {
-    return res.status(401).json({ error: 'Request timestamp expired' });
-  }
-
-  const payload = req.body.payload;
-  if (!payload) {
-    return res.status(401).json({ error: 'Payload required' });
-  }
-
-  const crypto = require('crypto');
-  const HMAC_SECRET = process.env.HMAC_SECRET || 'CEOTAQUANGTHUAN_TADUYANH_CTYTNHHDUYANH_ECOSYNTECH_2026';
-  
-  function canonicalStringify(obj) {
-    if (obj === null || obj === undefined) return 'null';
-    if (typeof obj !== 'object') return String(obj);
-    if (Array.isArray(obj)) {
-      return '[' + obj.map(canonicalStringify).join(',') + ']';
+  try {
+    const payload = req.body?.payload;
+    const signature = req.body?.signature;
+    if (!payload || !signature) {
+      return res.status(401).json({ error: 'Payload and signature required' });
     }
-    const keys = Object.keys(obj).sort();
-    const pairs = keys.map(k => `"${k}":${canonicalStringify(obj[k])}`);
-    return '{' + pairs.join(',') + '}';
+    const verification = require('../utils/envelope').verifyEnvelope(payload, signature);
+    if (!verification.valid) {
+      return res.status(401).json({ error: verification.error });
+    }
+    req.deviceEnvelope = payload;
+    next();
+  } catch (err) {
+    logger.error('[Auth] hmacAuth error:', err);
+    return res.status(500).json({ error: 'Authentication error' });
   }
-
-  const canonical = canonicalStringify(payload);
-  const expectedSig = crypto.createHmac('sha256', HMAC_SECRET).update(canonical).digest('hex');
-
-  if (signature !== expectedSig) {
-    logger.warn('[Auth] HMAC signature mismatch');
-    return res.status(401).json({ error: 'Invalid signature' });
-  }
-
-  next();
 }
 
 module.exports = {
