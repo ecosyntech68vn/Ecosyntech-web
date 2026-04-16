@@ -96,14 +96,37 @@ function applyMigrations() {
   }
 }
 
+let saveTimer = null;
+const SAVE_DEBOUNCE_MS = 1000;
+
 function saveDatabase() {
+  if (!db) return;
+  if (saveTimer) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    try {
+      const data = db.export();
+      const buffer = Buffer.from(data);
+      fs.writeFileSync(config.database.path, buffer);
+      logger.debug('Database saved to disk');
+    } catch (err) {
+      logger.error('Failed to save database:', err);
+    }
+  }, SAVE_DEBOUNCE_MS);
+}
+
+function flushDatabase() {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
   if (!db) return;
   try {
     const data = db.export();
     const buffer = Buffer.from(data);
     fs.writeFileSync(config.database.path, buffer);
   } catch (err) {
-    logger.error('Failed to save database:', err);
+    logger.error('Failed to flush database:', err);
   }
 }
 
@@ -237,6 +260,15 @@ function createTables() {
       FOREIGN KEY (device_id) REFERENCES devices(id)
     )
   `);
+
+  db.run('CREATE INDEX IF NOT EXISTS idx_commands_device_status ON commands(device_id, status)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_commands_status ON commands(status)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_devices_status ON devices(status)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_sensors_type ON sensors(type)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_rules_enabled ON rules(enabled)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_alerts_acknowledged ON alerts(acknowledged)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_history_timestamp ON history(timestamp)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_api_keys_expires ON api_keys(expires_at)');
 
   db.run(`
     CREATE TABLE IF NOT EXISTS traceability_batches (
@@ -459,7 +491,7 @@ function getAll(sql, params = []) {
 
 function closeDatabase() {
   if (db) {
-    saveDatabase();
+    flushDatabase();
     db.close();
     db = null;
     logger.info('Database connection closed');
@@ -504,6 +536,7 @@ module.exports = {
   getOne,
   getAll,
   saveDatabase,
+  flushDatabase,
   exportDatabase,
   importFromFile,
   statusReport,

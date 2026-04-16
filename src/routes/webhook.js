@@ -6,21 +6,25 @@ const metrics = require('../metrics');
 const { runQuery, getOne, getAll } = require('../config/database');
 const logger = require('../config/logger');
 
-// Legacy HMAC-based verification is now delegated to shared envelope utilities.
+function trackWebhookLatency(route, startTime) {
+  const duration = (Date.now() - startTime) / 1000;
+  metrics.webhookLatencySeconds.observe({ route }, duration);
+}
 
 // POST /api/webhook/esp32 - Nhận data từ ESP32 V8.5.0
 router.post('/esp32', async (req, res) => {
+  const startTime = Date.now();
   try {
     const { payload, signature } = req.body;
     if (!payload || !signature) {
       return res.status(400).json({ error: 'Missing payload or signature' });
     }
-    // Envelope-based verification
     const verification = require('../utils/envelope').verifyEnvelope(payload, signature);
     const route = '/api/webhook/esp32';
     if (!verification.valid) {
       metrics.envelopeVerificationsTotal.inc({ outcome: 'failure' });
       metrics.envelopeVerificationsByRoute.inc({ route, outcome: 'failure' });
+      trackWebhookLatency(route, startTime);
       return res.status(401).json({ error: verification.error });
     }
     metrics.envelopeVerificationsTotal.inc({ outcome: 'success' });
@@ -65,6 +69,7 @@ router.post('/esp32', async (req, res) => {
         } else {
           runQuery('INSERT INTO sensors (id, type, value, unit) VALUES (?, ?, ?, ?)', [sensorId, sensor, value, unit]);
         }
+        metrics.sensorReadingsTotal.inc({ sensor_type: sensor });
         logger.info(`[Webhook] ${sensor}=${value}${unit || ''} from ${deviceId}`);
       }
     }
@@ -91,17 +96,19 @@ router.post('/esp32', async (req, res) => {
       responsePayload.rules = getRulesForDevice(deviceId);
     }
     const envelope = signEnvelope(responsePayload);
-    // Optional: instrument envelope sign latency could be added here
+    trackWebhookLatency('/api/webhook/esp32', startTime);
     return res.json(envelope);
 
   } catch (err) {
     logger.error('[Webhook] Error:', err);
+    trackWebhookLatency('/api/webhook/esp32', startTime);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // POST /api/webhook/batch - Nhận batch info từ ESP32
 router.post('/batch', async (req, res) => {
+  const startTime = Date.now();
   try {
     const { payload, signature } = req.body;
     if (!payload || !signature) {
@@ -112,6 +119,7 @@ router.post('/batch', async (req, res) => {
     if (!verification.valid) {
       metrics.envelopeVerificationsTotal.inc({ outcome: 'failure' });
       metrics.envelopeVerificationsByRoute.inc({ route, outcome: 'failure' });
+      trackWebhookLatency(route, startTime);
       return res.status(401).json({ error: verification.error });
     }
     metrics.envelopeVerificationsTotal.inc({ outcome: 'success' });
@@ -121,7 +129,6 @@ router.post('/batch', async (req, res) => {
 
     logger.info(`[Webhook] Batch config from ${device_id}`);
 
-    // Return server-side configuration (canonical envelope)
     const responsePayload = {
       batches: getBatchesForDevice(device_id),
       config: {
@@ -138,10 +145,12 @@ router.post('/batch', async (req, res) => {
     };
 
     const envelopeResp = signEnvelope(responsePayload);
+    trackWebhookLatency(route, startTime);
     res.json(envelopeResp);
 
   } catch (err) {
     logger.error('[Webhook] Batch error:', err);
+    trackWebhookLatency('/api/webhook/batch', startTime);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -216,6 +225,7 @@ router.get('/command/:deviceId', async (req, res) => {
 
 // POST /api/webhook/command-result - ESP32 report command result
 router.post('/command-result', async (req, res) => {
+  const startTime = Date.now();
   try {
     const { payload, signature } = req.body;
     const verification = require('../utils/envelope').verifyEnvelope(payload, signature);
@@ -223,6 +233,7 @@ router.post('/command-result', async (req, res) => {
     if (!verification.valid) {
       metrics.envelopeVerificationsTotal.inc({ outcome: 'failure' });
       metrics.envelopeVerificationsByRoute.inc({ route, outcome: 'failure' });
+      trackWebhookLatency(route, startTime);
       return res.status(401).json({ error: verification.error });
     }
     metrics.envelopeVerificationsTotal.inc({ outcome: 'success' });
@@ -235,27 +246,30 @@ router.post('/command-result', async (req, res) => {
         'UPDATE commands SET status = ?, note = ?, completed_at = ? WHERE id = ?',
         [status || 'completed', note || '', new Date().toISOString(), command_id]
       );
+      metrics.commandsTotal.inc({ command: 'result', status: 'completed' });
     }
 
+    trackWebhookLatency(route, startTime);
     res.json(signEnvelope({ status: 'ok' }));
 
   } catch (err) {
     logger.error('[Webhook] Command result error:', err);
+    trackWebhookLatency('/api/webhook/command-result', startTime);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 function getBatchesForDevice(deviceId) {
   return getAll(
-    'SELECT * FROM batches WHERE device_id = ? AND (status = \'active\' OR force_send = 1)',
-    [deviceId]
+    'SELECT * FROM traceability_batches WHERE zone LIKE ? AND status = \'active\'',
+    [`%${deviceId}%`]
   );
 }
 
-function getRulesForDevice(deviceId) {
+function getRulesForDevice(_deviceId) {
   return getAll(
-    'SELECT * FROM rules WHERE device_id = ? AND enabled = 1',
-    [deviceId]
+    'SELECT * FROM rules WHERE enabled = 1',
+    []
   );
 }
 

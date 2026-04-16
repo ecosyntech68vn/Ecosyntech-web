@@ -1,35 +1,70 @@
-Phase 10 Runbook: Metrics, DB Admin & E2E Testing
-Overview
-- Phase 10 introduces enhanced observability, DB administration tooling, and end-to-end testing for the canonical ESP32 webhook contract.
+# Phase 10 Runbook: Production Deployment Checklist
 
-What’s included
-- Metrics:
-  - /metrics exposes Prometheus metrics including envelope_verifications_total and envelope_verifications_by_route
-  - Basic HTTP latency and requests metrics are collected
-  - Dashboard sample at dashboards/prometheus_dashboard.json for quick import
-- DB Admin tooling:
-  - scripts/db-admin.js supports backup, restore, status, migrate, and rollback
-  - backupCurrentDatabase() backs up the current DB before migration
-  - Rollback script via CLI to restore the latest backup in backups/ directory
-- End-to-End tests:
-  - tests/integration/e2e.webhook.test.js (ESP32 canonical flow)
-  - tests/integration/phase9.migration.test.js (Phase 9 migration) 
-  - tests/integration/e2e.webhook.integration.js (existing, kept for backward compatibility)
+## Pre-Deployment Checklist
 
-CI/Automation
-- GitHub Actions workflow .github/workflows/ci.yml added to run lint and tests on push/PR
-- CI will run unit tests first, then end-to-end and migration tests via npm test
+### Security
+- [ ] All required environment variables are set:
+  - [ ] `HMAC_SECRET` (required for ESP32 webhooks)
+  - [ ] `JWT_SECRET` (required for authentication)
+  - [ ] `WEBHOOK_SECRET` (for webhook authentication)
+- [ ] Secrets are NOT in version control
+- [ ] CORS_ORIGIN is restricted (not `*` in production)
+- [ ] Rate limiting is configured appropriately
 
-Rollout plan
-- Phase 7-9 are already in place: canonical ESP32 path, health endpoints, and migration tooling
-- Phase 10 runbook enables reproducible QA and safe production rollout
-- In prod, use db-admin migrate to apply phase 9 migration, then verify with phase9 migration test
-- For rollback, use db-admin rollback to restore latest backup in backups/
+### Database
+- [ ] Run database backup: `npm run db-admin -- backup`
+- [ ] Verify backup exists in `data/backups/`
+- [ ] Test migration: `npm run db-admin -- migrate --dry-run`
+- [ ] Apply migration: `npm run db-admin -- migrate`
 
-Best practices
-- Always run DB backup before migration in prod
-- Validate health endpoints after rollout: /api/health and /api/healthz
-- Monitor envelope_verifications_total and envelope_verifications_by_route in /metrics
-- Metrics endpoint exposure, and Grafana dashboard import
-- CI integration and rollback strategy
-- Phase 11+ runbook will add more checks for production rollout and incident response
+### Configuration
+- [ ] NODE_ENV=production
+- [ ] LOG_LEVEL=info or warn
+- [ ] Database path is correct
+- [ ] All external service URLs are configured
+
+### Monitoring
+- [ ] Prometheus metrics endpoint accessible: `GET /metrics`
+- [ ] Health endpoints verified:
+  - [ ] `GET /api/health`
+  - [ ] `GET /api/healthz`
+  - [ ] `GET /health`
+  - [ ] `GET /readiness`
+- [ ] Grafana dashboard imported from `dashboards/prometheus_dashboard.json`
+
+## Post-Deployment
+
+### Verification
+- [ ] Run smoke tests: `npm test`
+- [ ] Verify lint passes: `npm run lint`
+- [ ] Check logs for any errors
+- [ ] Verify webhooks are processing:
+  - Check `envelope_verifications_total{outcome="success"}` increasing
+  - Check `webhook_latency_seconds` is within acceptable range
+
+### Rollback Plan
+```bash
+# Restore from backup
+npm run db-admin -- restore
+
+# Or manually:
+cp data/backups/latest-backup.sqlite data/ecosyntech.db
+```
+
+## Key Metrics to Monitor
+
+### Success Indicators
+- `envelope_verifications_total{outcome="success"}` > 0
+- `http_requests_total{status="200"}` increasing
+- `webhook_latency_seconds` p95 < 1s
+
+### Alert Thresholds
+- `envelope_verifications_total{outcome="failure"}` > 10/min
+- `http_request_duration_seconds` p95 > 5s
+- `commands_total{status="failed"}` > 5/min
+
+## Emergency Contacts
+
+- DevOps: [contact info]
+- Backend Lead: [contact info]
+- On-call: [contact info]

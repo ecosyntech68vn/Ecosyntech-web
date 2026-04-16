@@ -1,36 +1,54 @@
 const jwt = require('jsonwebtoken');
 const logger = require('../config/logger');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
-const REFRESH_EXPIRES_IN = process.env.REFRESH_EXPIRES_IN || '7d';
+function getJwtConfig() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'test') {
+      return {
+        secret: 'test-jwt-secret-for-testing-only',
+        expiresIn: '1h',
+        refreshExpiresIn: '7d'
+      };
+    }
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+  return {
+    secret,
+    expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+    refreshExpiresIn: process.env.REFRESH_EXPIRES_IN || '7d'
+  };
+}
 
 function generateAccessToken(user) {
+  const config = getJwtConfig();
   return jwt.sign(
     {
       sub: user.id,
       email: user.email,
       role: user.role
     },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    config.secret,
+    { expiresIn: config.expiresIn }
   );
 }
 
 function generateRefreshToken(user) {
+  const config = getJwtConfig();
   return jwt.sign(
     {
       sub: user.id,
       type: 'refresh'
     },
-    JWT_SECRET,
-    { expiresIn: REFRESH_EXPIRES_IN }
+    config.secret,
+    { expiresIn: config.refreshExpiresIn }
   );
 }
 
 function verifyToken(token) {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    const config = getJwtConfig();
+    return jwt.verify(token, config.secret);
   } catch (err) {
     return null;
   }

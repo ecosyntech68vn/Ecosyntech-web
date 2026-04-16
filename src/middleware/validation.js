@@ -60,6 +60,39 @@ const schemas = {
     value: Joi.number().required()
   }),
 
+  envelope: Joi.object({
+    payload: Joi.object({
+      _did: Joi.string().required(),
+      _ts: Joi.number().required(),
+      _nonce: Joi.string().required(),
+      device_id: Joi.string(),
+      fw_version: Joi.string(),
+      readings: Joi.array().items(
+        Joi.object({
+          sensor_type: Joi.string(),
+          sensor: Joi.string(),
+          type: Joi.string(),
+          value: Joi.number().required(),
+          unit: Joi.string().allow('')
+        })
+      ).optional(),
+      get_commands: Joi.boolean().optional(),
+      get_config: Joi.boolean().optional(),
+      get_batch: Joi.boolean().optional(),
+      command_id: Joi.string().optional(),
+      status: Joi.string().optional(),
+      note: Joi.string().allow('').optional()
+    }).required(),
+    signature: Joi.string().required()
+  }),
+
+  deviceCommand: Joi.object({
+    device_id: Joi.string().required(),
+    command: Joi.string().required(),
+    params: Joi.object().optional(),
+    command_id: Joi.string().optional()
+  }),
+
   auth: {
     login: Joi.object({
       email: Joi.string().email().required(),

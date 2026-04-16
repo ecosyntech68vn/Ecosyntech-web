@@ -1,26 +1,94 @@
 {
   "dashboard": {
     "id": null,
-    "title": "EcoSynTech Backend Metrics",
-    "tags": ["backend"],
+    "title": "EcoSynTech IoT Backend - Production Dashboard",
+    "tags": ["backend", "iot", "production"],
     "timezone": "browser",
     "panels": [
       {
         "type": "graph",
-        "title": "Envelope Verifications Total",
-        "targets": [{"expr": "envelope_verifications_total", "legendFormat": "verifications"}],
+        "title": "HTTP Request Rate",
+        "targets": [
+          {"expr": "rate(http_requests_total[5m])", "legendFormat": "{{method}} {{path}} {{status}}"}
+        ],
         "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8}
       },
       {
         "type": "graph",
-        "title": "HTTP Requests Total",
-        "targets": [{"expr": "http_requests_total"}],
+        "title": "HTTP Request Latency (p95)",
+        "targets": [
+          {"expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))", "legendFormat": "p95 latency"}
+        ],
         "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8}
+      },
+      {
+        "type": "graph",
+        "title": "Envelope Verifications by Outcome",
+        "targets": [
+          {"expr": "rate(envelope_verifications_total[5m])", "legendFormat": "{{outcome}}"}
+        ],
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8}
+      },
+      {
+        "type": "graph",
+        "title": "Envelope Verifications by Route",
+        "targets": [
+          {"expr": "rate(envelope_verifications_by_route[5m])", "legendFormat": "{{route}} {{outcome}}"}
+        ],
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8}
+      },
+      {
+        "type": "graph",
+        "title": "Webhook Latency (p95)",
+        "targets": [
+          {"expr": "histogram_quantile(0.95, rate(webhook_latency_seconds_bucket[5m]))", "legendFormat": "{{route}}"}
+        ],
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8}
+      },
+      {
+        "type": "graph",
+        "title": "Sensor Readings Rate",
+        "targets": [
+          {"expr": "rate(sensor_readings_total[5m])", "legendFormat": "{{sensor_type}}"}
+        ],
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8}
+      },
+      {
+        "type": "graph",
+        "title": "Commands Processed",
+        "targets": [
+          {"expr": "rate(commands_total[5m])", "legendFormat": "{{command}} {{status}}"}
+        ],
+        "gridPos": {"x": 0, "y": 24, "w": 12, "h": 8}
+      },
+      {
+        "type": "graph",
+        "title": "Database Operation Latency (p95)",
+        "targets": [
+          {"expr": "histogram_quantile(0.95, rate(database_operation_duration_seconds_bucket[5m]))", "legendFormat": "{{operation}}"}
+        ],
+        "gridPos": {"x": 12, "y": 24, "w": 12, "h": 8}
+      },
+      {
+        "type": "stat",
+        "title": "Active Connections",
+        "targets": [
+          {"expr": "active_connections", "legendFormat": "Active Connections"}
+        ],
+        "gridPos": {"x": 0, "y": 32, "w": 6, "h": 4}
+      },
+      {
+        "type": "stat",
+        "title": "Uptime",
+        "targets": [
+          {"expr": "time() - process_start_time_seconds", "legendFormat": "Server Uptime"}
+        ],
+        "gridPos": {"x": 6, "y": 32, "w": 6, "h": 4}
       }
     ],
     "templating": {"list": []},
     "schemaVersion": 26,
-    "version": 1
+    "version": 2
   },
   "overwrite": true
 }

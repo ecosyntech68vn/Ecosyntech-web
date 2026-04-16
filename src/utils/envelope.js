@@ -1,9 +1,18 @@
 const crypto = require('crypto');
 
-// Canonical envelope utilities: sign and verify payloads with nonce replay guard
-
-const NONCE_WINDOW_SEC = 1200; // 20 minutes
+const NONCE_WINDOW_SEC = 1200;
 const seenNonces = new Map();
+
+function getHmacSecret() {
+  const secret = process.env.HMAC_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'test') {
+      return 'test-hmac-secret-for-testing-only';
+    }
+    throw new Error('HMAC_SECRET environment variable is required');
+  }
+  return secret;
+}
 
 function cleanupNonces() {
   const now = Date.now();
@@ -21,8 +30,7 @@ function canonicalStringify(obj) {
 }
 
 function hmacHex(message) {
-  const secret = process.env.HMAC_SECRET || 'CEOTAQUANGTHUAN_TADUYANH_CTYTNHHDUYANH_ECOSYNTECH_2026';
-  return crypto.createHmac('sha256', secret).update(message).digest('hex');
+  return crypto.createHmac('sha256', getHmacSecret()).update(message).digest('hex');
 }
 
 function signEnvelope(payload) {

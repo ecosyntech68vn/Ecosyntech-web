@@ -1,5 +1,9 @@
 require('dotenv').config();
 
+function requireEnvOrDefault(name, defaultValue) {
+  return process.env[name] || defaultValue;
+}
+
 module.exports = {
   port: parseInt(process.env.PORT || '3000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -10,8 +14,12 @@ module.exports = {
   },
   
   jwt: {
-    secret: process.env.JWT_SECRET || 'dev-secret-change-me',
+    secret: requireEnvOrDefault('JWT_SECRET', 'dev-secret-change-me'),
     expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+  },
+  
+  hmac: {
+    secret: requireEnvOrDefault('HMAC_SECRET', '')
   },
   
   mqtt: {
@@ -30,6 +38,6 @@ module.exports = {
   },
   
   webhook: {
-    secret: process.env.WEBHOOK_SECRET || 'webhook-secret'
+    secret: process.env.WEBHOOK_SECRET || ''
   }
 };
