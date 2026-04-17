@@ -39,5 +39,10 @@ module.exports = {
   
   webhook: {
     secret: process.env.WEBHOOK_SECRET || ''
+  },
+  
+  scheduler: {
+    apiKey: requireEnvOrDefault('SCHEDULER_API_KEY', ''),
+    enabled: process.env.SCHEDULER_ENABLED !== 'false'
   }
 };

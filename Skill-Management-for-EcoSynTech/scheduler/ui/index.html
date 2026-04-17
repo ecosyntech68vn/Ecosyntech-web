@@ -4,25 +4,149 @@
     <meta charset="UTF-8" />
     <title>EcoSynTech Scheduler UI</title>
     <style>
-      body { font-family: Arial, sans-serif; padding: 20px; }
+      * { box-sizing: border-box; }
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; background: #f5f5f5; }
+      .container { max-width: 1200px; margin: 0 auto; }
+      h1 { color: #333; margin-bottom: 5px; }
+      .subtitle { color: #666; margin-bottom: 20px; }
+      .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+      .api-key-section { background: #e3f2fd; border: 1px solid #90caf9; }
+      .api-key-section input { padding: 10px; width: 300px; border: 1px solid #ccc; border-radius: 4px; }
+      .api-key-section button { padding: 10px 20px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; }
       table { border-collapse: collapse; width: 100%; }
-      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-      th { background: #f4f4f4; }
-      .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; background: #eee; }
+      th, td { border: 1px solid #e0e0e0; padding: 12px 8px; text-align: left; }
+      th { background: #fafafa; font-weight: 600; }
+      .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
       .enabled { background: #4caf50; color: white; }
-      .disabled { background: #e0e0e0; color: #777; }
-      .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
-      .btn.primary { background: #007bff; color: white; }
-      .btn.danger { background: #dc3545; color: white; }
+      .disabled { background: #9e9e9e; color: white; }
+      .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+      .btn.primary { background: #1976d2; color: white; }
+      .btn.success { background: #388e3c; color: white; }
+      .btn.danger { background: #d32f2f; color: white; }
+      .btn.warning { background: #f57c00; color: white; }
+      .btn:hover { opacity: 0.9; }
+      .actions { display: flex; gap: 5px; }
+      .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+      .modal.show { display: flex; align-items: center; justify-content: center; }
+      .modal-content { background: white; padding: 30px; border-radius: 8px; width: 500px; max-width: 90%; }
+      .modal h2 { margin-top: 0; }
+      .form-group { margin-bottom: 15px; }
+      .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+      .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+      .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+      .status { padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+      .status.success { background: #c8e6c9; color: #2e7d32; }
+      .status.error { background: #ffcdd2; color: #c62828; }
+      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+      .stat-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+      .stat-card .value { font-size: 28px; font-weight: bold; color: #1976d2; }
+      .stat-card .label { color: #666; font-size: 13px; }
+      .hidden { display: none; }
+      .last-run { font-size: 12px; color: #888; }
+      .interval-select { display: flex; gap: 5px; flex-wrap: wrap; }
+      .interval-option { padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+      .interval-option.selected { background: #1976d2; color: white; border-color: #1976d2; }
     </style>
   </head>
   <body>
-    <h1>Scheduler Dashboard</h1>
-    <p>Config-based scheduler for EcoSynTech skills. Edit via config/scheduler.json.</p>
-    <table id="schedTable">
-      <thead><tr><th>Name</th><th>Interval</th><th>Skills</th><th>Enabled</th><th>Next</th><th>Actions</th></tr></thead>
-      <tbody></tbody>
-    </table>
+    <div class="container">
+      <h1>EcoSynTech Skill Scheduler</h1>
+      <p class="subtitle">Automation orchestration for IoT backend operations</p>
+      
+      <div id="apiKeySection" class="card api-key-section">
+        <h3>API Key Authentication</h3>
+        <p>Enter your SCHEDULER_API_KEY to access the scheduler dashboard:</p>
+        <div style="display: flex; gap: 10px;">
+          <input type="password" id="apiKeyInput" placeholder="Enter SCHEDULER_API_KEY" />
+          <button onclick="connectWithApiKey()">Connect</button>
+        </div>
+        <p style="font-size: 12px; color: #666; margin-top: 10px;">
+          API Key is set via SCHEDULER_API_KEY environment variable on the server.
+        </p>
+      </div>
+      
+      <div id="dashboardSection" class="hidden">
+        <div class="stats">
+          <div class="stat-card">
+            <div class="value" id="totalSchedules">0</div>
+            <div class="label">Total Schedules</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="enabledSchedules">0</div>
+            <div class="label">Enabled</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="totalRuns">0</div>
+            <div class="label">Total Runs</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0;">Schedules</h2>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn primary" onclick="showAddModal()">+ Add Schedule</button>
+              <button class="btn warning" onclick="exportConfig()">Export</button>
+              <button class="btn" onclick="disconnect()">Disconnect</button>
+            </div>
+          </div>
+          
+          <div id="statusMessage"></div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Interval</th>
+                <th>Skills</th>
+                <th>Status</th>
+                <th>Last Run</th>
+                <th>Run Count</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="schedTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <div id="scheduleModal" class="modal">
+      <div class="modal-content">
+        <h2 id="modalTitle">Add Schedule</h2>
+        <input type="hidden" id="scheduleId" />
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" id="scheduleName" placeholder="e.g., Critical Monitoring" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="scheduleDesc" placeholder="e.g., Real-time health checks" />
+        </div>
+        <div class="form-group">
+          <label>Interval *</label>
+          <select id="scheduleInterval">
+            <option value="5m">5 minutes</option>
+            <option value="15m">15 minutes</option>
+            <option value="30m">30 minutes</option>
+            <option value="1h" selected>1 hour</option>
+            <option value="2h">2 hours</option>
+            <option value="6h">6 hours</option>
+            <option value="12h">12 hours</option>
+            <option value="1d">1 day</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Skills * (comma-separated)</label>
+          <input type="text" id="scheduleSkills" placeholder="e.g., health-check, monitor, alerting" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn" onclick="closeModal()">Cancel</button>
+          <button class="btn success" onclick="saveSchedule()">Save</button>
+        </div>
+      </div>
+    </div>
+    
     <script src="app.js"></script>
   </body>
-  </html>
+</html>

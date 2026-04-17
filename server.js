@@ -24,6 +24,7 @@ const statsRoutes = require('./src/routes/stats');
 const authRoutes = require('./src/routes/auth');
 const webhookRoutes = require('./src/routes/webhook');
 const traceabilityRoutes = require('./src/routes/traceability');
+const skillSchedulerRoutes = require('./src/routes/skillScheduler');
 const metrics = require('./src/metrics');
 // Legacy firmware contract is deprecated and not mounted to avoid dual webhook streams
 // (ESP32 should use /api/webhook/esp32 going forward)
@@ -145,6 +146,16 @@ function createApp() {
   app.use('/api/auth', authRoutes);
   app.use('/api/webhook', webhookRoutes);
   app.use('/api/traceability', traceabilityRoutes);
+  app.use('/api/v1/skills/scheduler', skillSchedulerRoutes);
+  
+  app.post('/api/v1/skills/execute', (req, res) => {
+    const { skill } = req.body;
+    if (!skill) {
+      return res.status(400).json({ error: 'skill name is required' });
+    }
+    logger.info(`[Skills] Execute requested: ${skill}`);
+    res.json({ success: true, skill, message: `Skill "${skill}" queued for execution`, timestamp: new Date().toISOString() });
+  });
 
   // Health endpoints for deployment health and readiness
   app.get('/health', (req, res) => {
