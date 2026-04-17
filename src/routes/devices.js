@@ -95,7 +95,7 @@ router.post('/', auth, async (req, res) => {
     }
 
     const deviceId = `DEV-${uuidv4().substring(0, 8).toUpperCase()}`;
-    const { name, type, zone, location, metadata } = value;
+    const { name, type, zone } = value;
     
     runQuery(
       `INSERT INTO devices (id, name, type, zone, status, config, created_at) 
