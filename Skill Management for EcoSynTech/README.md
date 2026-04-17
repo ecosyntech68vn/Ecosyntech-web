@@ -79,6 +79,12 @@ Custom skills for managing EcoSynTech IoT backend - Complete automation suite (2
 /load-test
 ```
 
+## Traffic Scheduler
+
+- Scheduler is integrated under: Skill Management for EcoSynTech/scheduler/
+- Uses config/scheduler.json to schedule skills
+- Run: node scheduler-runner.js (or run via npm script)
+
 ## Automation Coverage: 96%
 
 | Area | Skills | Coverage |

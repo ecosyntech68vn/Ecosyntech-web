@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "schedules": [
+    {"name": "critical_monitoring", "interval": "5m", "skills": ["health-check","monitor"], "enabled": true},
+    {"name": "debug_check", "interval": "15m", "skills": ["log-analyzer","iot-debug"], "enabled": true},
+    {"name": "backup_and_alerts", "interval": "30m", "skills": ["backup","alerting"], "enabled": true},
+    {"name": "hourly_report", "interval": "1h", "skills": ["system-report","metrics-export"], "enabled": true},
+    {"name": "scale_and_security", "interval": "2h", "skills": ["auto-scale","security-audit"], "enabled": true}
+  ]
+}
