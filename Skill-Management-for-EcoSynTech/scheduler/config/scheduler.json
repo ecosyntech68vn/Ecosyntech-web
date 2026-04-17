@@ -1,36 +1,65 @@
 {
+  "version": "1.0",
+  "metadata": {
+    "version": "1.0",
+    "created": "2026-04-17T00:00:00.000Z",
+    "lastModified": null
+  },
   "schedules": [
     {
-      "id": "sched-1776433670035-t5awbeorw",
-      "name": "Import Test 1",
-      "interval": "10m",
-      "skills": [
-        "backup"
-      ],
+      "id": "sched-critical-001",
+      "name": "Critical Monitoring",
+      "description": "Real-time health and monitoring checks",
+      "interval": "5m",
+      "skills": ["health-check", "monitor"],
       "enabled": true,
-      "description": "",
-      "createdAt": "2026-04-17T13:47:50.035Z",
+      "createdAt": "2026-04-17T00:00:00.000Z",
       "lastRun": null,
       "runCount": 0
     },
     {
-      "id": "sched-1776433670035-japnw83cn",
-      "name": "Import Test 2",
-      "interval": "1h",
-      "skills": [
-        "alerting"
-      ],
+      "id": "sched-debug-002",
+      "name": "Debug & Diagnostics",
+      "description": "Log analysis and IoT debugging",
+      "interval": "15m",
+      "skills": ["log-analyzer", "iot-debug"],
       "enabled": true,
-      "description": "",
-      "createdAt": "2026-04-17T13:47:50.035Z",
+      "createdAt": "2026-04-17T00:00:00.000Z",
+      "lastRun": null,
+      "runCount": 0
+    },
+    {
+      "id": "sched-backup-003",
+      "name": "Backup & Alerts",
+      "description": "Database backup and system alerts",
+      "interval": "30m",
+      "skills": ["backup", "alerting"],
+      "enabled": true,
+      "createdAt": "2026-04-17T00:00:00.000Z",
+      "lastRun": null,
+      "runCount": 0
+    },
+    {
+      "id": "sched-report-004",
+      "name": "Hourly Report",
+      "description": "System reports and metrics export",
+      "interval": "1h",
+      "skills": ["system-report", "metrics-export"],
+      "enabled": true,
+      "createdAt": "2026-04-17T00:00:00.000Z",
+      "lastRun": null,
+      "runCount": 0
+    },
+    {
+      "id": "sched-scale-sec-005",
+      "name": "Scale & Security",
+      "description": "Auto-scaling and security audit",
+      "interval": "2h",
+      "skills": ["auto-scale", "security-audit"],
+      "enabled": true,
+      "createdAt": "2026-04-17T00:00:00.000Z",
       "lastRun": null,
       "runCount": 0
     }
-  ],
-  "metadata": {
-    "version": "1.0",
-    "lastModified": "2026-04-17T13:47:50.035Z",
-    "imported": true,
-    "importedAt": "2026-04-17T13:47:50.035Z"
-  }
+  ]
 }

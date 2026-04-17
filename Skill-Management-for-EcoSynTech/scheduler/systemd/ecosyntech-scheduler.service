@@ -5,10 +5,13 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/root/.local/share/opencode/worktree/235aa3d499aaf6c96fd60e7c52a229e9ffd9b946/hidden-canyon
-ExecStart=/usr/bin/node "/root/.local/share/opencode/worktree/235aa3d499aaf6c96fd60e7c52a229e9ffd9b946/hidden-canyon/Skill Management for EcoSynTech/scheduler/scheduler-runner.js"
+WorkingDirectory=/root/ecosyntech-web
+ExecStart=/usr/bin/node /root/ecosyntech-web/Skill-Management-for-EcoSynTech/scheduler/scheduler-runner.js
 Restart=on-failure
-Environment=SCHEDULER_CONFIG=/root/.local/share/opencode/worktree/235aa3d499aaf6c96fd60e7c52a229e9ffd9b946/hidden-canyon/Skill Management for EcoSynTech/scheduler/config/scheduler.json
+RestartSec=10
+Environment=SCHEDULER_CONFIG=/root/ecosyntech-web/Skill-Management-for-EcoSynTech/scheduler/config/scheduler.json
+Environment=SCHEDULER_API_KEY=CHANGE_ME_TO_YOUR_API_KEY
+Environment=PORT=3000
 Environment=NODE_ENV=production
 
 [Install]
