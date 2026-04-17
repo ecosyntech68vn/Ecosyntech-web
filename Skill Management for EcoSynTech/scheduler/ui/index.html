@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>EcoSynTech Scheduler UI</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background: #f4f4f4; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; background: #eee; }
+      .enabled { background: #4caf50; color: white; }
+      .disabled { background: #e0e0e0; color: #777; }
+      .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
+      .btn.primary { background: #007bff; color: white; }
+      .btn.danger { background: #dc3545; color: white; }
+    </style>
+  </head>
+  <body>
+    <h1>Scheduler Dashboard</h1>
+    <p>Config-based scheduler for EcoSynTech skills. Edit via config/scheduler.json.</p>
+    <table id="schedTable">
+      <thead><tr><th>Name</th><th>Interval</th><th>Skills</th><th>Enabled</th><th>Next</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <script src="app.js"></script>
+  </body>
+  </html>
