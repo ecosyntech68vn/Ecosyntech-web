@@ -10,6 +10,10 @@ module.exports = {
     'event:voice.alert',
     'event:voice.confirm',
     'event:voice.help',
+    'event:voice.admin',
+    'event:voice.monitor',
+    'event:voice.troubleshoot',
+    'event:voice.userdata',
     'cron:5m'
   ],
   riskLevel: 'low',
@@ -40,6 +44,25 @@ module.exports = {
         result.guidanceSteps = this.generateConfigGuide(event.deviceType, lang);
         result.ttsOutput = this.generateTTS(result.guidanceSteps, lang);
         result.confirmationNeeded = true;
+        break;
+        
+      case 'admin':
+        result.guidanceSteps = this.generateAdminGuide(event.topic, lang);
+        result.ttsOutput = this.generateTTS(result.guidanceSteps, lang);
+        break;
+        
+      case 'monitor':
+        result.guidanceSteps = this.generateMonitorGuide(event.topic, lang);
+        result.ttsOutput = this.generateTTS(result.guidanceSteps, lang);
+        break;
+        
+      case 'troubleshoot':
+        result.guidanceSteps = this.generateTroubleshootGuide(event.issue, lang);
+        result.ttsOutput = this.generateTTS(result.guidanceSteps, lang);
+        break;
+        
+      case 'userdata':
+        result.ttsOutput = this.formatUserData(event.data, lang);
         break;
         
       case 'input':
@@ -104,6 +127,12 @@ module.exports = {
           { step: 3, text: 'Hệ thống sẽ tự động tạo mã QR', icon: '🔳' },
           { step: 4, text: 'In QR và dán lên sản phẩm', icon: '🖨️' },
           { step: 5, text: 'Khách hàng scan QR để xem toàn bộ journey', icon: '📱' }
+        ],
+        'welcome': [
+          { step: 1, text: 'Chào mừng đến với EcoSynTech FARM OS!', icon: '🌱' },
+          { step: 2, text: 'Hệ thống IoT nông nghiệp thông minh toàn diện', icon: '🚀' },
+          { step: 3, text: 'Bạn có 58 skills tự động hóa sẵn sàng để hỗ trợ', icon: '⚙️' },
+          { step: 4, text: 'Hãy khám phá dashboard và bắt đầu trồng trọt thông minh', icon: '📊' }
         ]
       },
       en: {
@@ -138,6 +167,12 @@ module.exports = {
           { step: 3, text: 'System will auto-generate QR code', icon: '🔳' },
           { step: 4, text: 'Print and attach QR to product', icon: '🖨️' },
           { step: 5, text: 'Customer scans QR to view full journey', icon: '📱' }
+        ],
+        'welcome': [
+          { step: 1, text: 'Welcome to EcoSynTech FARM OS!', icon: '🌱' },
+          { step: 2, text: 'Comprehensive IoT Smart Farming System', icon: '🚀' },
+          { step: 3, text: 'You have 58 automation skills ready to assist', icon: '⚙️' },
+          { step: 4, text: 'Explore the dashboard and start smart farming', icon: '📊' }
         ]
       },
       zh: {
@@ -172,6 +207,12 @@ module.exports = {
           { step: 3, text: '系统将自动生成二维码', icon: '🔳' },
           { step: 4, text: '打印并贴在产品上', icon: '🖨️' },
           { step: 5, text: '客户扫描二维码查看完整过程', icon: '📱' }
+        ],
+        'welcome': [
+          { step: 1, text: '欢迎使用EcoSynTech FARM OS！', icon: '🌱' },
+          { step: 2, text: '全面的物联网智慧农业系统', icon: '🚀' },
+          { step: 3, text: '您拥有58个自动化技能随时待命', icon: '⚙️' },
+          { step: 4, text: '探索仪表板并开始智慧农业', icon: '📊' }
         ]
       }
     };
@@ -410,6 +451,393 @@ module.exports = {
     }).join('. ');
     
     return (prefix[lang] || prefix.vi) + texts;
+  },
+  
+  generateAdminGuide: function(topic, lang) {
+    var docs = {
+      vi: {
+        'skill': [
+          { step: 1, text: 'Vào mục Skills trên dashboard', icon: '⚙️' },
+          { step: 2, text: 'Xem danh sách 59 skills đã cài đặt', icon: '📋' },
+          { step: 3, text: 'Bật/tắt skill bằng toggle', icon: '🔄' },
+          { step: 4, text: 'Xem logs của từng skill để theo dõi', icon: '📊' },
+          { step: 5, text: 'Cấu hình skill parameters trong file cấu hình', icon: '⚙️' }
+        ],
+        'system': [
+          { step: 1, text: 'Vào mục Quản trị hệ thống', icon: '🎛️' },
+          { step: 2, text: 'Xem thông số server: CPU, RAM, Network', icon: '💻' },
+          { step: 3, text: 'Xem logs hệ thống để phát hiện lỗi', icon: '📝' },
+          { step: 4, text: 'Restart services nếu cần thiết', icon: '🔄' },
+          { step: 5, text: 'Backup dữ liệu định kỳ', icon: '💾' }
+        ],
+        'user': [
+          { step: 1, text: 'Vào mục Người dùng', icon: '👥' },
+          { step: 2, text: 'Thêm người dùng mới với quyền tương ứng', icon: '➕' },
+          { step: 3, text: 'Phân quyền: Admin, Operator, Viewer', icon: '🔐' },
+          { step: 4, text: 'Reset mật khẩu nếu cần', icon: '🔑' },
+          { step: 5, text: 'Xem logs hoạt động của người dùng', icon: '📊' }
+        ],
+        'backup': [
+          { step: 1, text: 'Vào mục Sao lưu', icon: '💾' },
+          { step: 2, text: 'Tạo backup thủ công hoặc để scheduler tự động', icon: '⏰' },
+          { step: 3, text: 'Chọn destination: local hoặc cloud', icon: '☁️' },
+          { step: 4, text: 'Tải file backup về máy', icon: '⬇️' },
+          { step: 5, text: 'Restore khi cần thiết', icon: '🔄' }
+        ],
+        'default': [
+          { step: 1, text: 'Vào mục Quản trị trên dashboard', icon: '🎛️' },
+          { step: 2, text: 'Chọn mục cần quản lý', icon: '📋' },
+          { step: 3, text: 'Thực hiện thao tác cần thiết', icon: '⚙️' },
+          { step: 4, text: 'Kiểm tra kết quả', icon: '✅' }
+        ]
+      },
+      en: {
+        'skill': [
+          { step: 1, text: 'Go to Skills section', icon: '⚙️' },
+          { step: 2, text: 'View 59 installed skills', icon: '📋' },
+          { step: 3, text: 'Toggle skill on/off', icon: '🔄' },
+          { step: 4, text: 'View logs per skill', icon: '📊' },
+          { step: 5, text: 'Configure in config file', icon: '⚙️' }
+        ],
+        'system': [
+          { step: 1, text: 'Go to System Admin', icon: '🎛️' },
+          { step: 2, text: 'View server stats: CPU, RAM, Network', icon: '💻' },
+          { step: 3, text: 'View system logs for errors', icon: '📝' },
+          { step: 4, text: 'Restart services if needed', icon: '🔄' },
+          { step: 5, text: 'Backup data regularly', icon: '💾' }
+        ],
+        'user': [
+          { step: 1, text: 'Go to Users section', icon: '👥' },
+          { step: 2, text: 'Add new user with role', icon: '➕' },
+          { step: 3, text: 'Assign roles: Admin, Operator, Viewer', icon: '🔐' },
+          { step: 4, text: 'Reset password if needed', icon: '🔑' },
+          { step: 5, text: 'View user activity logs', icon: '📊' }
+        ],
+        'backup': [
+          { step: 1, text: 'Go to Backup section', icon: '💾' },
+          { step: 2, text: 'Manual or auto scheduler backup', icon: '⏰' },
+          { step: 3, text: 'Choose destination: local or cloud', icon: '☁️' },
+          { step: 4, text: 'Download backup file', icon: '⬇️' },
+          { step: 5, text: 'Restore when needed', icon: '🔄' }
+        ],
+        'default': [
+          { step: 1, text: 'Go to Admin dashboard', icon: '🎛️' },
+          { step: 2, text: 'Select manage section', icon: '📋' },
+          { step: 3, text: 'Perform action', icon: '⚙️' },
+          { step: 4, text: 'Verify result', icon: '✅' }
+        ]
+      },
+      zh: {
+        'skill': [
+          { step: 1, text: '进入技能部分', icon: '⚙️' },
+          { step: 2, text: '查看已安装的59个技能', icon: '📋' },
+          { step: 3, text: '切换技能开关', icon: '🔄' },
+          { step: 4, text: '查看每个技能的日志', icon: '📊' },
+          { step: 5, text: '在配置文件中配置', icon: '⚙️' }
+        ],
+        'system': [
+          { step: 1, text: '进入系统管理', icon: '🎛️' },
+          { step: 2, text: '查看服务器状态：CPU、RAM、网络', icon: '💻' },
+          { step: 3, text: '查看系统日志以发现错误', icon: '📝' },
+          { step: 4, text: '如需要重启服务', icon: '🔄' },
+          { step: 5, text: '定期备份数据', icon: '💾' }
+        ],
+        'user': [
+          { step: 1, text: '进入用户部分', icon: '👥' },
+          { step: 2, text: '添加新用户并分配角色', icon: '➕' },
+          { step: 3, text: '分配角色：管理员、操作员、查看者', icon: '🔐' },
+          { step: 4, text: '如需要重置密码', icon: '🔑' },
+          { step: 5, text: '查看用户活动日志', icon: '📊' }
+        ],
+        'backup': [
+          { step: 1, text: '进入备份部分', icon: '💾' },
+          { step: 2, text: '手动或自动计划备份', icon: '⏰' },
+          { step: 3, text: '选择目标：本地或云', icon: '☁️' },
+          { step: 4, text: '下载备份文件', icon: '⬇️' },
+          { step: 5, text: '需要时恢复', icon: '🔄' }
+        ],
+        'default': [
+          { step: 1, text: '进入管理仪表板', icon: '🎛️' },
+          { step: 2, text: '选择管理部分', icon: '📋' },
+          { step: 3, text: '执行操作', icon: '⚙️' },
+          { step: 4, text: '验证结果', icon: '✅' }
+        ]
+      }
+    };
+    
+    var langDocs = docs[lang] || docs.vi;
+    return langDocs[topic] || langDocs['default'];
+  },
+  
+  generateMonitorGuide: function(topic, lang) {
+    var monitors = {
+      vi: {
+        'realtime': [
+          { step: 1, text: 'Vào mục Giám sát thời gian thực', icon: '👁️' },
+          { step: 2, text: 'Xem dữ liệu cảm biến mới nhất', icon: '📊' },
+          { step: 3, text: 'Xem trạng thái relay hiện tại', icon: '🎛️' },
+          { step: 4, text: 'Theo dõi tải server', icon: '💻' }
+        ],
+        'history': [
+          { step: 1, text: 'Vào mục Lịch sử dữ liệu', icon: '📜' },
+          { step: 2, text: 'Chọn khoảng thời gian', icon: '⏰' },
+          { step: 3, text: 'Chọn cảm biến cần xem', icon: '📡' },
+          { step: 4, text: 'Xem biểu đồ dữ liệu', icon: '📈' }
+        ],
+        'alert': [
+          { step: 1, text: 'Vào mục Cảnh báo', icon: '🔔' },
+          { step: 2, text: 'Xem danh sách cảnh báo', icon: '📋' },
+          { step: 3, text: 'Lọc theo mức độ nghiêm trọng', icon: '⚠️' },
+          { step: 4, text: 'Xem chi tiết và xử lý', icon: '🔧' }
+        ],
+        'device': [
+          { step: 1, text: 'Vào mục Thiết bị', icon: '���' },
+          { step: 2, text: 'Xem danh sách thiết bị', icon: '📋' },
+          { step: 3, text: 'Xem trạng thái online/offline', icon: '🟢' },
+          { step: 4, text: 'Xem thời gian hoạt động', icon: '⏱️' }
+        ],
+        'default': [
+          { step: 1, text: 'Vào mục Giám sát', icon: '👁️' },
+          { step: 2, text: 'Chọn loại giám sát', icon: '📊' },
+          { step: 3, text: 'Xem dữ liệu', icon: '📈' },
+          { step: 4, text: 'Xuất báo cáo nếu cần', icon: '📄' }
+        ]
+      },
+      en: {
+        'realtime': [
+          { step: 1, text: 'Go to Real-time Monitor', icon: '👁️' },
+          { step: 2, text: 'View latest sensor data', icon: '📊' },
+          { step: 3, text: 'View current relay status', icon: '🎛️' },
+          { step: 4, text: 'Monitor server load', icon: '💻' }
+        ],
+        'history': [
+          { step: 1, text: 'Go to Data History', icon: '📜' },
+          { step: 2, text: 'Select time range', icon: '⏰' },
+          { step: 3, text: 'Select sensor to view', icon: '📡' },
+          { step: 4, text: 'View data chart', icon: '📈' }
+        ],
+        'alert': [
+          { step: 1, text: 'Go to Alerts', icon: '🔔' },
+          { step: 2, text: 'View alert list', icon: '📋' },
+          { step: 3, text: 'Filter by severity', icon: '⚠️' },
+          { step: 4, text: 'View details and handle', icon: '🔧' }
+        ],
+        'device': [
+          { step: 1, text: 'Go to Devices', icon: '📱' },
+          { step: 2, text: 'View device list', icon: '📋' },
+          { step: 3, text: 'View online/offline status', icon: '🟢' },
+          { step: 4, text: 'View uptime', icon: '⏱️' }
+        ],
+        'default': [
+          { step: 1, text: 'Go to Monitoring', icon: '👁️' },
+          { step: 2, text: 'Select monitor type', icon: '📊' },
+          { step: 3, text: 'View data', icon: '📈' },
+          { step: 4, text: 'Export report if needed', icon: '📄' }
+        ]
+      },
+      zh: {
+        'realtime': [
+          { step: 1, text: '进入实时监控', icon: '👁️' },
+          { step: 2, text: '查看最新传感器数据', icon: '📊' },
+          { step: 3, text: '查看当前继电器状态', icon: '🎛️' },
+          { step: 4, text: '监控服务器负载', icon: '💻' }
+        ],
+        'history': [
+          { step: 1, text: '进入数据历史', icon: '📜' },
+          { step: 2, text: '选择时间范围', icon: '⏰' },
+          { step: 3, text: '选择要查看的传感器', icon: '📡' },
+          { step: 4, text: '查看数据图表', icon: '📈' }
+        ],
+        'alert': [
+          { step: 1, text: '进入警报', icon: '🔔' },
+          { step: 2, text: '查看警报列表', icon: '📋' },
+          { step: 3, text: '按严重程度筛选', icon: '⚠️' },
+          { step: 4, text: '查看详情并处理', icon: '🔧' }
+        ],
+        'device': [
+          { step: 1, text: '进入设备', icon: '📱' },
+          { step: 2, text: '查看设备列表', icon: '📋' },
+          { step: 3, text: '查看在线/离线状态', icon: '🟢' },
+          { step: 4, text: '查看运行时间', icon: '⏱️' }
+        ],
+        'default': [
+          { step: 1, text: '进入监控', icon: '👁️' },
+          { step: 2, text: '选择监控类型', icon: '📊' },
+          { step: 3, text: '查看数据', icon: '📈' },
+          { step: 4, text: '如需要导出报告', icon: '📄' }
+        ]
+      }
+    };
+    
+    var langMonitors = monitors[lang] || monitors.vi;
+    return langMonitors[topic] || langMonitors['default'];
+  },
+  
+  generateTroubleshootGuide: function(issue, lang) {
+    var fixes = {
+      vi: {
+        'no_data': [
+          { step: 1, text: 'Kiểm tra kết nối cảm biến', icon: '🔌' },
+          { step: 2, text: 'Khởi động lại thiết bị', icon: '🔄' },
+          { step: 3, text: 'Kiểm tra cổng GPIO', icon: '⚙️' },
+          { step: 4, text: 'Thử thay cảm biến khác', icon: '🔁' },
+          { step: 5, text: 'Liên hệ hỗ trợ nếu không được', icon: '📞' }
+        ],
+        'offline': [
+          { step: 1, text: 'Kiểm tra nguồn điện', icon: '⚡' },
+          { step: 2, text: 'Kiểm tra WiFi', icon: '📡' },
+          { step: 3, text: 'Khởi động lại thiết bị', icon: '🔄' },
+          { step: 4, text: 'Kiểm tra cấu hình mạng', icon: '⚙️' },
+          { step: 5, text: 'Reset về factory defaults', icon: '🏠' }
+        ],
+        'relay_not_work': [
+          { step: 1, text: 'Kiểm tra relay có kết nối không', icon: '🔌' },
+          { step: 2, text: 'Kiểm tra tải (max 10A)', icon: '⚡' },
+          { step: 3, text: 'Thử bật/tắt thủ công', icon: '🎛️' },
+          { step: 4, text: 'Kiểm tra rule cấu hình', icon: '⚙️' },
+          { step: 5, text: 'Thay relay mới nếu hỏng', icon: '🔁' }
+        ],
+        'alert_not_sent': [
+          { step: 1, text: 'Kiểm tra cấu hình Telegram', icon: '📱' },
+          { step: 2, text: 'Kiểm tra bot token', icon: '🔑' },
+          { step: 3, text: 'Thử gửi test message', icon: '✉️' },
+          { step: 4, text: 'Kiểm tra ngưỡng cảnh báo', icon: '⚠️' },
+          { step: 5, text: 'Kiểm tra network', icon: '🌐' }
+        ],
+        'high_cpu': [
+          { step: 1, text: 'Xem processes đang chạy', icon: '📊' },
+          { step: 2, text: 'Kiểm tra logs', icon: '📝' },
+          { step: 3, text: 'Restart services', icon: '🔄' },
+          { step: 4, text: 'Tăng RAM nếu cần', icon: '💻' },
+          { step: 5, text: 'Liên hệ support', icon: '📞' }
+        ],
+        'default': [
+          { step: 1, text: 'Xem chi tiết lỗi trong logs', icon: '📝' },
+          { step: 2, text: 'Thử khởi động lại thiết bị', icon: '🔄' },
+          { step: 3, text: 'Kiểm tra kết nối mạng', icon: '���' },
+          { step: 4, text: 'Liên hệ hỗ trợ nếu không được', icon: '📞' }
+        ]
+      },
+      en: {
+        'no_data': [
+          { step: 1, text: 'Check sensor connection', icon: '🔌' },
+          { step: 2, text: 'Restart device', icon: '🔄' },
+          { step: 3, text: 'Check GPIO port', icon: '⚙️' },
+          { step: 4, text: 'Try different sensor', icon: '🔁' },
+          { step: 5, text: 'Contact support if not working', icon: '📞' }
+        ],
+        'offline': [
+          { step: 1, text: 'Check power supply', icon: '⚡' },
+          { step: 2, text: 'Check WiFi', icon: '📡' },
+          { step: 3, text: 'Restart device', icon: '🔄' },
+          { step: 4, text: 'Check network config', icon: '⚙️' },
+          { step: 5, text: 'Reset to factory defaults', icon: '🏠' }
+        ],
+        'relay_not_work': [
+          { step: 1, text: 'Check relay connection', icon: '🔌' },
+          { step: 2, text: 'Check load (max 10A)', icon: '⚡' },
+          { step: 3, text: 'Try manual on/off', icon: '🎛️' },
+          { step: 4, text: 'Check rule config', icon: '⚙️' },
+          { step: 5, text: 'Replace relay if broken', icon: '🔁' }
+        ],
+        'alert_not_sent': [
+          { step: 1, text: 'Check Telegram config', icon: '📱' },
+          { step: 2, text: 'Check bot token', icon: '🔑' },
+          { step: 3, text: 'Try send test message', icon: '✉️' },
+          { step: 4, text: 'Check alert threshold', icon: '⚠️' },
+          { step: 5, text: 'Check network', icon: '🌐' }
+        ],
+        'high_cpu': [
+          { step: 1, text: 'View running processes', icon: '📊' },
+          { step: 2, text: 'Check logs', icon: '📝' },
+          { step: 3, text: 'Restart services', icon: '🔄' },
+          { step: 4, text: 'Increase RAM if needed', icon: '💻' },
+          { step: 5, text: 'Contact support', icon: '📞' }
+        ],
+        'default': [
+          { step: 1, text: 'View error details in logs', icon: '📝' },
+          { step: 2, text: 'Try restarting device', icon: '🔄' },
+          { step: 3, text: 'Check network connection', icon: '🌐' },
+          { step: 4, text: 'Contact support if not working', icon: '📞' }
+        ]
+      },
+      zh: {
+        'no_data': [
+          { step: 1, text: '检查传感器连接', icon: '🔌' },
+          { step: 2, text: '重启设备', icon: '🔄' },
+          { step: 3, text: '检查GPIO端口', icon: '⚙️' },
+          { step: 4, text: '尝试不同的传感器', icon: '🔁' },
+          { step: 5, text: '如需要联系支持', icon: '📞' }
+        ],
+        'offline': [
+          { step: 1, text: '检查电源', icon: '⚡' },
+          { step: 2, text: '检查WiFi', icon: '📡' },
+          { step: 3, text: '重启设备', icon: '🔄' },
+          { step: 4, text: '检查网络配置', icon: '⚙️' },
+          { step: 5, text: '恢复出厂设置', icon: '🏠' }
+        ],
+        'relay_not_work': [
+          { step: 1, text: '检查继电器连接', icon: '🔌' },
+          { step: 2, text: '检查负载（最大10A）', icon: '⚡' },
+          { step: 3, text: '尝试手动开关', icon: '🎛️' },
+          { step: 4, text: '检查规则配置', icon: '⚙️' },
+          { step: 5, text: '如损坏则更换继电器', icon: '🔁' }
+        ],
+        'alert_not_sent': [
+          { step: 1, text: '检查Telegram配置', icon: '📱' },
+          { step: 2, text: '检查机器人令牌', icon: '🔑' },
+          { step: 3, text: '尝试发送测试消息', icon: '✉️' },
+          { step: 4, text: '检查警报阈值', icon: '⚠️' },
+          { step: 5, text: '检查网络', icon: '🌐' }
+        ],
+        'high_cpu': [
+          { step: 1, text: '查看运行中的进程', icon: '📊' },
+          { step: 2, text: '检查日志', icon: '📝' },
+          { step: 3, text: '重启服务', icon: '🔄' },
+          { step: 4, text: '如需要增加RAM', icon: '💻' },
+          { step: 5, text: '联系支持', icon: '📞' }
+        ],
+        'default': [
+          { step: 1, text: '在日志中查看错误详情', icon: '📝' },
+          { step: 2, text: '尝试重启设备', icon: '🔄' },
+          { step: 3, text: '检查网络连接', icon: '🌐' },
+          { step: 4, text: '如需要联系支持', icon: '📞' }
+        ]
+      }
+    };
+    
+    var langFixes = fixes[lang] || fixes.vi;
+    return langFixes[issue] || langFixes['default'];
+  },
+  
+  formatUserData: function(data, lang) {
+    var templates = {
+      vi: {
+        'status': 'Trạng thái hệ thống: ' + (data?.status || 'Hoạt động bình thường'),
+        'sensors': 'Cảm biến: Nhiệt độ ' + (data?.temp || '---') + ' độ, Độ ẩm ' + (data?.humidity || '---') + ' phần trăm',
+        'devices': 'Thiết bị: ' + (data?.deviceCount || '0') + ' thiết bị đang hoạt động',
+        'alerts': 'Cảnh báo: ' + (data?.alertCount || '0') + ' cảnh báo chưa đọc',
+        'batches': 'Lô hàng: ' + (data?.batchCount || '0') + ' lô đang theo dõi'
+      },
+      en: {
+        'status': 'System status: ' + (data?.status || 'Normal'),
+        'sensors': 'Sensors: Temperature ' + (data?.temp || '---') + ', Humidity ' + (data?.humidity || '---') + ' percent',
+        'devices': 'Devices: ' + (data?.deviceCount || '0') + ' devices active',
+        'alerts': 'Alerts: ' + (data?.alertCount || '0') + ' unread alerts',
+        'batches': 'Batches: ' + (data?.batchCount || '0') + ' batches tracking'
+      },
+      zh: {
+        'status': '系统状态：' + (data?.status || '正常'),
+        'sensors': '传感器：温度' + (data?.temp || '---') + '，湿度' + (data?.humidity || '---') + '百分比',
+        'devices': '设备：' + (data?.deviceCount || '0') + '个设备运行中',
+        'alerts': '警报：' + (data?.alertCount || '0') + '条未读警报',
+        'batches': '批次：' + (data?.batchCount || '0') + '个批次跟踪中'
+      }
+    };
+    
+    var langTemplates = templates[lang] || templates.vi;
+    var type = data?.type || 'status';
+    return langTemplates[type] || langTemplates['status'];
   },
   
   speak: function(text, lang) {
