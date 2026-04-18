@@ -1,7 +1,7 @@
 # 🚀 ECOSYNTECH FARM OS
 ## Nền Tảng Nông Nghiệp Thông Minh 4.0
 
-Hệ thống IoT nông nghiệp thông minh toàn diện với **62 skills tự động hóa**, **QR Code Traceability**, **AI RAG** và **Aptos Blockchain**.
+Hệ thống IoT nông nghiệp thông minh toàn diện với **64 skills tự động hóa**, **QR Code Traceability**, **AI RAG**, **ROI Calculator** và **SQLite IoT Optimizer**.
 
 ---
 
@@ -11,7 +11,7 @@ Hệ thống IoT nông nghiệp thông minh toàn diện với **62 skills tự 
 
 | Tính năng | Mô tả |
 |-----------|-------|
-| **62 Skills tự động** | Quản lý, vận hành, giám sát, tự sửa lỗi |
+| **64 Skills tự động** | Quản lý, vận hành, giám sát, tự sửa lỗi |
 | **QR Traceability** | Truy xuất nguồn gốc từ gieo trồng đến xuất bán |
 | **Aptos Blockchain** | Ghi hash (bật/tắt tùy chọn) |
 | **i18n đa ngôn ngữ** | Tiếng Việt, English, 中文 |
