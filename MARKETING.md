@@ -1,349 +1,250 @@
-# 🌱 ECOSYNTECH FARM OS
-## Nền Tảng Nông Nghiệp Thông Minh Toàn Diện
+# 🚀 ECOSYNTECH FARM OS
+## Nền Tảng Nông Nghiệp Thông Minh 4.0
+
+* *"Cắm là chạy - Nông nghiệp thông minh cho mọi người"*
 
 ---
 
-## 🚀 GIỚI THIỆU
+## 🌟 TẠI SAO CHỌN ECOSYNTECH?
 
-**ECOSYNTECH FARM OS** là hệ thống IoT nông nghiệp thông minh do **EcoSynTech Global** phát triển - giải pháp end-to-end cho mọi quy mô trồng trọt, từ vườn mini 5m² đến trang trại 50 hecta.
+### 🔥 Đột phá - Khác biệt hoàn toàn
 
-> **🚀 Slogan:** *"Cắm là chạy - Nông nghiệp thông minh cho mọi người"*
-
----
-
-## ⭐ ĐIỂM KHÁC BIỆT CỐT LÕI
-
-### 🔑 "Cắm là chạy" - Đơn giản nhất thị trường
-
-| Đặc điểm | ECOSYNTECH | Giải pháp khác |
-|----------|-----------|----------------|
-| **Setup** | 5 phút, cắm WiFi là chạy | Cần kỹ sư IT, 2-3 ngày |
-| **Backend** | ✅ **Tùy chọn** - dùng GAS free hoặc Web API | Bắt buộc server |
-| **Database** | ✅ **Tùy chọn** - Google Sheets miễn phí hoặc SQLite | Phải trả hosting |
-| **Giao diện** | Tiếng Việt | Tiếng Anh |
-| **Giá** | **Free** → 99k/tháng | 5-10 triệu/tháng |
-
-### 🎯 3 Lựa chọn Deploy (tùy nhu cầu):
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    ECOSYNTECH DEPLOY OPTIONS                    │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  🅰️ MINIMAL (Free)          🅱️ STANDARD              🅾️ FULL   │
-│  ─────────────              ──────────            ──────────    │
-│  ESP32 + GAS               ESP32 + GAS           ESP32 + GAS   │
-│  (Google Sheets)           + Web Backend         + Web Backend │
-│  100% Free                 99k/tháng            299k/tháng   │
-│                                                                  │
-│  ✅ Sensor data            ✅ + 58 Skills         ✅ + AI      │
-│  ✅ Telegram Bot           ✅ + QR Code          ✅ + All     │
-│  ✅ QR Traceability        ✅ + Auto control      ✅ + Full    │
-│  ✅ Smart Control          ✅ + i18n              ✅ + Custom  │
-│                                                                  │
-│  📌 Ai cũng dùng được!    📌 Nông trại nhỏ      📌 Doanh nghiệp│
-└─────────────────────────────────────────────────────────────────┘
-```
+| Điểm | ECOSYNTECH | Giải pháp khác |
+|------|-----------|---------------|
+| **Chi phí** | **Free → 99K/tháng** | 5-10 triệu/tháng |
+| **Setup** | **5 phút, cắm là chạy** | Cần kỹ sư IT 2-3 ngày |
+| **Vận hành** | **58 skills tự động 95%** | Làm thủ công |
+| **Truy xuất** | **QR tự động từ gieo trồng** | Thủ công |
+| **Blockchain** | **Aptos (tùy chọn)** | Không có |
+| **AI** | **Tích hợp miễn phí** | Phụ phí |
 
 ---
 
-## 🤖 58 SKILLS TỰ ĐỘNG HÓA 95% VẬN HÀNH
+## 💰 CHI PHÍ THẤP NHẤT VIỆT NAM
 
-### 🎯 Tự động hóa toàn diện - Không cần ngồi máy!
+### 📊 So sánh chi phí thực tế
+
+| Hạng mục | ECOSYNTECH | Giải pháp nhập khẩu |
+|----------|-----------|----------------------|
+| Thiết bị ESP32 | **300-500K** | 1-2 triệu |
+| Backend | **Free** (GAS) | 500K-2 triệu/tháng |
+| Database | **Free** (Sheets) | 200-500K/tháng |
+| Hosting/Domain | **Không cần** | 300K-1 triệu/tháng |
+| Telegram Bot | **Miễn phí** | Miễn phí |
+| QR Code | **Tự tạo** | 50K/lần |
+| AI Advisory | **Tích hợp** | 500K+/tháng |
+
+> **TỔNG CHI PHÍ NĂM ĐẦU: Chỉ 300-500K!** (thiết bị)
+
+### 💵 3 GÓI PHÙ HỢP MỌI NGÂN SÁCH
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    58 SKILLS = 95% TỰ ĐỘNG                              │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   🔧 VẬN HÀNH (20 skills)          🧠 GIÁM SÁT (15 skills)              │
-│   ━━━━━━━━━━━━━━━━━━━━━           ━━━━━━━━━━━━━━━━━━━━              │
-│   ✓ Rules Engine                  ✓ System Health Scorer              │
-│   ✓ Schedules Engine              ✓ AI Weather Prediction               │
-│   ✓ Webhook Dispatch              ✓ Anomaly Predictor                 │
-│   ✓ OTA Orchestrator               ✓ KPI Drift Monitor                  │
-│   ✓ Command Router                ✓ Root Cause Analyzer               │
-│   ✓ Report Export                 ✓ Auto Backup                        │
-│                                                                             │
-│   🔒 BẢO MẬT (8 skills)            🌾 NÔNG NGHIỆP (5 skills)            │
-│   ━━━━━━━━━━━━━━━━━              ━━━━━━━━━━━━━━━━━━                  │
-│   ✓ RBAC Guard                    ✓ Weather Decision                   │
-│   ✓ Audit Trail                   ✓ Water Optimization                 │
-│   ✓ Vulnerability Scanner         ✓ Crop Growth Tracker               │
-│   ✓ Intrusion Detector            ✓ Pest Alert                         │
-│   ✓ Rate Limit Guard               ✓ Fertilizer Scheduler               │
-│                                                                             │
-│   🔄 TỰ SỬA LỖI (6 skills)         📡 IoT (3 skills)                    │
-│   ━━━━━━━━━━━━━━━━━━━             ━━━━━━━━━━━━━━                       │
-│   ✓ Auto Retry                    ✓ Energy Saver                      │
-│   ✓ Reconnect Bridge              ✓ Predictive Maintenance             │
-│   ✓ Reset Device                  ✓ Multi-Farm Manager                │
-│   ✓ Clear Cache                                                          │
-│   ✓ Rollback OTA                                                          │
-│   ✓ Auto Acknowledge                                                      │
-│                                                                             │
-│   📦 TRACEABILITY (3)           📢 GIAO TIẾP (4)                        │
-│   ━━━━━━━━━━━━━━━               ━━━━━━━━━━━━━━                        │
-│   ✓ QR Generator                 ✓ Telegram Notifier                   │
-│   ✓ Aptos Blockchain             ✓ Report Generator                    │
-│   ✓ Aptos Integration            ✓ Voice Notifier                     │
-│                                  ✓ Language Switcher                   │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                      ECOSYNTECH - BA GÓI GIÁ                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  🥉 FREE                    🥈 BASIC                   🥇 PRO               │
+│  ─────────                 ─────────                 ──────              │
+│  0đ/Máy                  99K/Tháng               299K/Tháng          │
+│                                                                      │
+│  ✅ 3 sensor             ✅ 10 sensor             ✅ Unlimited       │
+│  ✅ 1 device             ✅ 5 devices            ✅ Multi-farm       │
+│  ✅ Telegram Bot          ✅ + QR Code            ✅ + AI            │
+│  ✅ Smart Control       ✅ + Blockchain       ✅ + VIP           │
+│                        ✅ + Auto backup         ✅ + Support       │
+│                                                                      │
+│  👨‍🌾 Nông dân                     👨‍🍳 HTX                    🏢 Doanh nghiệp      │
+│  thử nghiệm                  quy mô nhỏ              xuất khẩu        │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 📊 Bạn làm gì mỗi ngày với 58 skills?
+---
 
-| Trước (Không có ECOSYNTECH) | Sau (Với ECOSYNTECH) |
-|-----------------------------|----------------------|
+## 🤖 58 SKILLS - TỰ ĐỘNG 95% CÔNG VIỆC
+
+### 🎯 Không cần ngồi máy - Hệ thống tự lo!
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     58 SKILLS = 95% TỰ ĐỘNG                             │
+├───────────────────────────────────���─────────────────────────────────────┤
+│                                                                          │
+│   🔧 VẬN HÀNH         🔒 BẢO MẬT        🧠 GIÁM SÁT       🔄 TỰ SỬA   │
+│   ───────────        ───────────       ───────────      ─────────           │
+│   ✓ Rules Engine     ✓ RBAC Guard    ✓ AI Weather     ✓ Auto Retry      │
+│   ✓ Scheduler       ✓ Audit Trail  ✓ Anomaly       ✓ Reconnect      │
+│   ✓ Webhook         ✓ Vulnerability✓ Health Score✓ Reset Device  │
+│   ✓ OTA Update      ✓ Rate Limit   ✓ KPI Drift    ✓ Clear Cache   │
+│   ✓ Command Router  ✓ Intrusion   ✓ Root Cause   ✓ Rollback OTA  │
+│   ✓ Report Export  ✓ Secrets     ✓ Auto Backup  ✓ Auto Ack     │
+│                                                                          │
+│   🌾 NÔNG NGHIỆP      📦 TRACEABILITY  📢 GIAO TIẾP      📡 IoT       │
+│   ─────────────      ─────────────    ──────────      ──────               │
+│   ✓ Weather        ✓ QR Generator  ✓ Telegram     ✓ Energy Saver      │
+│   ✓ Water Opt      ✓ Blockchain    ✓ Voice Notif  ✓ Predictive      │
+│   ✓ Crop Tracker  ✓ Aptos         ✓ Report Gen   ✓ Multi-Farm      │
+│   ✓ Pest Alert    ✓ Integration   ✓ Language     ✓ Voice Asst    │
+│   ✓ Fertilizer               ✓ Voice Config ✓ User Guide   │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 📊 Trước vs Sau
+
+| Trước (Mất 2-3h/ngày) | Sau (15 phút) |
+|----------------------------|------------|
 | ❌ Kiểm tra sensor thủ công | ✅ Auto monitor 24/7 |
-| ❌ Bật tắt máy bơm tay | ✅ Smart Control tự động |
-| ❌ Phát hiện lỗi muộn | ✅ Auto detect + fix |
-| ❌ Viết báo cáo mất 1h | ✅ Auto export report |
-| ❌ Theo dõi nhiều thiết bị | ✅ Central control |
+| ❌ Bật tắt máy bơm tay | ✅ Auto theo ngưỡng |
+| ❌ Phát hiện lỗi muộn | ✅ Auto detect + alert |
+| ❌ Viết báo cáo 1h | ✅ Auto export |
 | ❌ Lo lắng khi đi xa | ✅ Telegram alerts |
-
-**👉 95% công việc được tự động - Bạn chỉ cần kiểm tra dashboard!**
-
----
-
-### 🛠️ Skills tự sửa lỗi (không cần can thiệp):
-
-| Skill | Chức năng |
-|-------|-----------|
-| **retry-job** | Tự động retry khi request fail |
-| **reconnect-bridge** | Tự reconnect khi mất kết nối |
-| **reset-device** | Reset thiết bị khi stuck |
-| **clear-cache** | Clear memory khi đầy |
-| **rollback-ota** | Rollback firmware nếu lỗi |
-| **auto-acknowledge** | Auto ack alerts nhỏ |
-
----
-
-### 🧠 Skills AI thông minh:
-
-| Skill | Chức năng |
-|-------|-----------|
-| **ai-predict-weather** | Dự đoán thời tiết 24h |
-| **anomaly-predictor** | Phát hiện bất thường |
-| **predictive-maintenance** | Dự đoán hỏng thiết bị |
-| **root-cause-analyzer** | Phân tích nguyên nhân lỗi |
-| **system-health-scorer** | Chấm điểm sức khỏe hệ thống |
+| ❌ Theo dõi nhiều thiết bị | ✅ Central control |
 
 ---
 
 ## 🏗️ KIẾN TRÚC HỆ THỐNG
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          ECOSYNTECH ECOSYSTEM                                │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌────────────────┐          ┌────────────────────┐      ┌────────────┐ │
-│  │   FIRMWARE     │          │    BACKEND API     │      │   MOBILE   │ │
-│  │   ESP32        │◄────────►│    (Node.js)       │◄─────►│   APP      │ │
-│  │   V8.5.0       │   HTTPS  │    V2.3.2          │      │   Web UI   │ │
-│  │                │          │                    │      │            │ │
-│  │ • 8 Relay      │          │ • 58 Skills        │      │ • Dashboard│ │
-│  │ • Sensor array │          │ • QR Traceability  │      │ • Controls │ │
-│  │ • OLED Display │          │ • Blockchain        │      │ • Alerts   │ │
-│  │ • MQTT/WiFi    │          │ • i18n (VI/EN/ZH)  │      │ • Reports  │ │
-│  └────────────────┘          └─────────┬──────────┘      └────────────┘ │
-│                                        │                                    │
-│                                        ▼                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐ │
-│  │                    GAS (Google Apps Script) V9.5                    │ │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │ │
-│  │  │ Advisory │ │ Smart    │ │ Telegram │ │    QR    │ │  Aptos   │   │ │
-│  │  │   AI     │ │ Control  │ │   Bot    │ │ Renderer │ │Blockchain│   │ │
-│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘   │ │
-│  │                                                                       │ │
-│  │  ┌──────────────────────────────────────────────────────────────┐   │ │
-│  │  │              GOOGLE SHEETS (Database)                        │   │ │
-│  │  │  BatchInfo │ Batchsheet │ Devices │ Alerts │ Blockchain_Log   │   │ │
-│  │  └──────────────────────────────────────────────────────────────┘   │ │
-│  └─────────────────────────────────────────────────────────────────────┘ │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        ECOSYNTECH ECOSYSTEM                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│   📟 THIẾT BỊ          🌐 BACKEND API          📱 DASHBOARD           │
+│   ───────────          ─────────────          ─────────────               │
+│   ┌──────────┐        ┌──────────┐         ┌──────────┐               │
+│   │ ESP32    │◄──────►│ Node.js  │◄────────►│ Web UI   │               │
+│   │ V8.5.0  │  HTTPS  │ V2.3.2  │  REST    │ Mobile   │               │
+│   │          │        │         │         │         │               │
+│   │•8 Relay  │        │•58 Skills│         │•Dashboard│               │
+│   │•12 Sensor│        │•QR Code │         ���•Controls │               │
+│   │•OLED    │        │•i18n    │         │•Alerts   │               │
+│   │•MQTT    │        │•Blockch.│         │•Reports  │               │
+│   └──────────┘        └──────────┘         └──────────┘               │
+│                             │                                          │
+│                             ▼                                          │
+│   ┌────────────────────────────────────────────────────────────┐       │
+│   │            💾 GAS (GOOGLE APPS SCRIPT) V9.5                 │       │
+│   │  ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐          │       │
+│   │  │Advisory│ │Smart │ │Telegram│ │ QR   │ │Blockchain│          │       │
+│   │  │  AI   │ │Control│ │  Bot  │ │Render│ │  Aptos │          │       │
+│   │  └───────┘ └───────┘ └───────┘ └───────┘ └───────┘          │       │
+│   │                                                            │       │
+│   │  ┌──────────────────────────────────────────────┐         │       │
+│   │  │      📊 GOOGLE SHEETS (Database)             │         │       │
+│   │  │  BatchInfo │ Devices │ Sensors │ Alerts │ │         │       │
+│   │  └──────────────────────────────────────────────┘         │       │
+│   └────────────────────────────────────────────────────────────┘       │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📦 SẢN PHẨM & THIẾT BỊ
+## 🌾 PHÙ HỢP MỌI LOẠI HÌNH THỨC
 
-### 1. Firmware ESP32 V8.5.0
-- **CPU:** ESP32 dual-core 240MHz
-- **WiFi:** 802.11 b/g/n
-- **Bluetooth:** BLE 4.2
-- **I/O:** 8 relay, 12 sensor ports
-- **Display:** OLED 0.96"
-- **Storage:** 4MB Flash
+### 👨‍🌾 ĐỐI TƯỢNG SỬ DỤNG
 
-### 2. Tính năng Firmware
-```
-✓ Auto-connect WiFi
-✓ Auto-post data every 10 min (configurable)
-✓ Deep sleep mode (tiết kiệm pin)
-✓ OTA firmware update
-✓ HMAC-SHA256 security
-✓ Local display + button control
-✓ MQTT + HTTP fallback
-```
-
-### 3. PCB V6.3 - Mainboard
-- PCB thiết kế chuyên dụng
-- 8 kênh relay 10A
-- 12 cổng sensor (DS18B20, DHT22, Soil, pH, EC...)
-- Nguồn 12V/5V stable
-- Case nhựa ABS bảo vệ
+| Đối tượng | Vấn đề cũ | Giải pháp ECOSYNTECH |
+|----------|-----------|---------------------|
+| **Nông dân truyền thống** | Không biết IT | "Cắm là chạy", tiếng Việt |
+| **Homesteader** | Không có thời gian | Auto tưới, auto báo |
+| **Thủy canh Hydro** | Khó kiểm soát pH/EC | Monitor tự động |
+| **Aquaponic** | Chất lượng nước | Sensor NH3, NO2 |
+| **Nhà kính** | Vi khí hậu | Điều khiển đèn, quạt, tưới |
+| **Trang trại** | Nhiều zone | Multi-farm, central |
+| **HTX/Doanh nghiệp** | Cần chứng nhận | QR + Blockchain xuất khẩu |
 
 ---
 
-## 💡 TÍNH NĂNG NỔI BẬT
+## 🔑 ĐIỂM KHÁC BIỆT CỐT LÕI
 
-### 🎯 Tại sao "Cắm là chạy"?
+### 1. "Cắm là chạy" - Đơn giản nhất Việt Nam
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    "CẮM LÀ CHẠY" - SETUP TRONG 5 PHÚT                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   1️⃣  Cấp nguồn 12V                                                    │
-│        ↓                                                                  │
-│   2️⃣  Kết nối WiFi (nhập tên + mật khẩu)                                  │
-│        ↓                                                                  │
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    "CẮM LÀ CHẠY" - SETUP 5 PHÚT                        │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│   1️��  C��p nguồn 12V                                                    │
+│        ↓                                                                 │
+│   2️⃣  Kết nối WiFi                                                     │
+│        ↓                                                                 │
 │   3️⃣  Cắm sensor (cắm là nhận)                                         │
-│        ↓                                                                  │
-│   4️⃣  Scan QR code trên thiết bị                                        │
-│        ↓                                                                  │
-│   5️⃣  Bắt đầu giám sát!                                                 │
-│                                                                             │
-│   ✨ KHÔNG cần laptop, KHÔNG cần code, KHÔNG cần kỹ sư IT!              │
-└─────────────────────────────────────────────────────────────────────────────┘
+│        ↓                                                                 │
+│   4️⃣  Scan QR hoặc truy cập dashboard                                   │
+│        ↓                                                                 │
+│   5️⃣  Bắt đầu giám sát!                                                │
+│                                                                          │
+│   ✨ KHÔNG cần laptop, KHÔNG cần code, KHÔNG cần kỹ sư IT!               │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 💰 Chi phí - Không có gì rẻ hơn!
+### 2. QR Truy xuất nguồn gốc tự động
 
-| Thành phần | ECOSYNTECH | Chi phí |
-|-----------|------------|---------|
-| **Backend** | Google Apps Script (Free) | **0đ** |
-| **Database** | Google Sheets (Free) | **0đ** |
-| **Hosting** | Không cần | **0đ** |
-| **Domain** | Không cần | **0đ** |
-| **Telegram Bot** | Miễn phí | **0đ** |
-| **QR Code** | Tự tạo | **0đ** |
-| **AI Advisory** | Tích hợp sẵn | **0đ** |
-
-**👉 Bạn chỉ cần trả tiền thiết bị ESP32 (~300-500k) và bắt đầu!**
-
-### 🌟 QR Code Traceability - Truy xuất nguồn gốc
-
-**Tự động từ khi gieo trồng:**
 ```
-📱 Tạo lô → 🎫 QR Code tự động
+Tạo lô → QR Code tự động
        ↓
-🌱 Gieo trồng → 📝 Thêm stage (gieo, chăm sóc)
+Gieo trồng → Thêm stage (gieo, chăm sóc)
        ↓
-💧 Tưới nước → 📊 Auto log từ sensor
+Tưới nước → Auto log từ sensor
        ↓
-🌾 Thu hoạch → ⛓️ Hash lên Aptos (nếu bật)
+Thu hoạch → Hash lên Aptos (nếu bật)
        ↓
-📦 Đóng gói → 🖨️ In QR label
+Đóng gói → In QR label
        ↓
-🚚 Xuất bán → 🔍 Scan verify
+Xuất bán → Scan verify
        ↓
-✅ Khách hàng → 📱 Xem toàn bộ journey
+Khách hàng → Xem toàn bộ journey
 ```
 
-**Cho nông dân:** Không cần hiểu blockchain - hệ thống tự động!
+**⚠️ KHÔNG cần hiểu blockchain - Hệ thống tự động!**
 
-### 🤖 AI Advisory Engine
+### 3. AI Advisory - Như có kỹ sư AI bên cạnh
 
-**Tự động phân tích & cảnh báo:**
-| Sensor | Threshold | Action |
-|--------|-----------|--------|
-| Nhiệt độ > 38°C | Cảnh báo nóng | Telegram alert |
-| Độ ẩm < 45% | Cảnh báo khô | Gợi ý tưới |
-| Độ ẩm đất < 30% | Auto bật máy bơm | Rule trigger |
-| pH < 5.5 / > 7.5 | Cảnh báo pH | Alert + khuyến nghị |
-| Battery < 3.5V | Cảnh báo pin | Alert |
+| Tình trạng | Hành động |
+|-----------|----------|
+| 🌡️ Nhiệt > 38°C | 🔔 Cảnh báo nóng + Telegram |
+| 💧 Độ ẩm < 45% | 💧 Gợi ý tưới nước |
+| 🌱 Đất khô < 30% | ⚡ Auto bật máy bơm |
+| 🔬 pH bất thường | ⚠️ Cảnh báo + khuyến nghị |
+| 🔋 Pin yếu | 🔔 Cảnh báo thay pin |
 
-**AI dự đoán:**
-- 📈 Ngày thu hoạch tối ưu
-- 🦟 Nguy cơ sâu bệnh
-- 💧 Lịch tưới tối ưu
+### 4. Smart Control - Tự động điều khiển
 
-### 🔗 Smart Control Engine
-
-**Tự động điều khiển:**
 ```javascript
-// Ví dụ rule
+// Ví dụ: Tưới tự động khi đất khô
 {
   name: "Tưới khi đất khô",
-  condition: "soil_moisture < 30",
-  action: "relay1_on",
-  duration: 300,      // 5 phút
-  cooldown: 1800,     // 30 phút
-  hysteresis: 5      // tránh on/off liên tục
+  condition: "soil_moisture < 30",  // độ ẩm đất < 30%
+  action: "relay1_on",             // bật máy bơm
+  duration: 300,                  // 5 phút
+  cooldown: 1800,                 // 30 phút sau mới bật lại
+  hysteresis: 5                   // tránh bật/tắt liên tục
 }
 ```
 
-**Hỗ trợ:**
-- ✅ Hysteresis (tránh rung)
-- ✅ Cooldown (chống spam)
-- ✅ Reset action (tắt sau X phút)
-- ✅ Manual override
+---
 
-### 📱 Telegram Bot
+## 📱 TELEGRAM BOT - QUẢN LÝ TỪ XA
 
 ```
-/start      - Khởi động bot
-/status     - Trạng thái hệ thống  
-/sensors    - Dữ liệu cảm biến mới nhất
-/alerts     - Cảnh báo đang hoạt động
-/batches    - Danh sách lô hàng
-/devices    - Thiết bị đang hoạt động
-/rules      - Quy tắc đang chạy
-/help       - Trợ giúp
+/start      → Khởi động bot
+/status     → Trạng thái hệ thống  
+/sensors    → Dữ liệu cảm biến mới nhất
+/alerts     → Cảnh báo đang hoạt động
+/batches    → Danh sách lô hàng
+/devices    → Thiết bị đang hoạt động
+/rules      → Quy tắc đang chạy
+/controls   → Điều khiển relay
+/help       → Trợ giúp
 ```
-
-### ⛓️ Aptos Blockchain
-
-- **Ghi hash** khi thu hoạch, xuất bán, chứng nhận
-- **Toggle** bật/tắt (mặc định: tắt)
-- **Mainnet** + Testnet support
-- **Batch 7 ngày** - tránh spam
 
 ---
 
-## 👥 ĐỐI TƯỢNG KHÁCH HÀNG
-
-### 🎯 Mục tiêu chính
-
-| Đối tượng | Vấn đề | Giải pháp ECOSYNTECH |
-|-----------|--------|---------------------|
-| **Nông dân truyền thống** | Thiếu kiến thức IT | "Cắm là chạy", tiếng Việt |
-| **Homesteader** | Không có thời gian | Auto tưới, auto báo |
-| **Thủy canh (Hydro)** | Khó kiểm soát pH/EC | Monitor tự động, cảnh báo |
-| **Aquaponic** | Chất lượng nước | Sensor NH3, NO2, auto điều chỉnh |
-| **Nhà kính** | Quản lý vi khí hậu | Điều khiển đèn, quạt, tưới |
-| **Trang trại lớn** | Nhiều zone | Multi-farm, central control |
-| **HTX/Doanh nghiệp** | Cần chứng nhận | QR + Blockchain xuất khẩu |
-
-### 💰 Phân khúc giá
-
-| Gói | Giá | Phù hợp | Tính năng |
-|-----|------|---------|-----------|
-| **Free** | 0đ | Thử nghiệm | 3 sensor, 1 device, no blockchain |
-| **Basic** | 99k/tháng | Nông dân/homesteader | 10 sensor, 5 device, QR code |
-| **Pro** | 299k/tháng | Thủy canh/aquaponic | Unlimited, auto control, AI |
-| **Business** | Liên hệ | Doanh nghiệp/HTX | Multi-farm, blockchain, API |
-
----
-
-## 🔧 THÔNG SỐ KỸ THUẬT
+## 🛠️ THÔNG SỐ KỸ THUẬT
 
 ### Firmware ESP32 V8.5.0
+
 | Thông số | Giá trị |
 |----------|---------|
 | MCU | ESP32 dual-core 240MHz |
@@ -355,102 +256,47 @@
 | Sensor Ports | 12 ports |
 | Display | OLED 0.96" 128x64 |
 | Power | 12V DC |
-| Size | 120x80mm |
 
 ### Backend API V2.3.2
+
 | Thông số | Giá trị |
 |----------|---------|
 | Platform | Node.js + Express |
-| Database | SQLite (sql.js) |
-| Skills | 58 automated |
+| Database | SQLite |
+| Skills | 60 automated |
 | API | REST + WebSocket |
 | Security | JWT, RBAC, Rate Limit |
 | i18n | VI, EN, ZH |
-| RAM tối thiểu | 512MB |
+| RAM tối thiểu | **512MB** |
 | Compatible | Windows 7+ |
 
 ---
 
-## 📊 SO SÁNH
+## 📞 SETUP & LIÊN HỆ
 
-| Tính năng | ECOSYNTECH | Giải pháp A | Giải pháp B |
-|-----------|-----------|-------------|-------------|
-| **Skills tự động** | 58+ | 5-10 | 2-5 |
-| **QR Traceability** | ✅ Tự động | ❌ | Thủ công |
-| **Blockchain** | Aptos | ❌ | ❌ |
-| **AI Advisory** | ✅ Miễn phí | Phụ phí | Phụ phí |
-| **Telegram Bot** | ✅ | ❌ | ✅ |
-| **Giá/min** | 99k | 300k+ | 200k+ |
-| **RAM tối thiểu** | 512MB | 2GB | 1GB |
+### 🚀 Setup "Cắm là chạy"
 
----
+```bash
+# Clone và cài đặt
+git clone https://github.com/ecosyntech68vn/Ecosyntech-web
+cd Ecosyntech-web
+npm install
 
-## 🛠️ SETUP "CẮM LÀ CHẠY"
+# Chạy (sử dụng GAS miễn phí)
+npm start
 
-### Bước 1: Kết nối thiết bị
-```
-🔌 Cấp nguồn 12V
-📡 Kết nối WiFi (SSID/Password)
-🔗 Kết nối sensor (cắm là nhận)
+# Hoặc chạy AI local (tùy chọn)
+bash scripts/setup-ai.sh
 ```
 
-### Bước 2: Cấu hình
-```
-📱 Truy cập web dashboard
-➡️ Thêm thiết bị
-➡️ Đặt tên zone
-➡️ Thiết lập ngưỡng
-```
+### 📱 Liên hệ
 
-### Bước 3: Bắt đầu
-```
-🚀 Auto start
-📊 Xem dashboard
-🔔 Nhận Telegram alerts
-📦 Tạo QR đầu tiên
-```
-
-**Thời gian setup:** 5 phút!
-
----
-
-## 📈 CASE STUDIES
-
-### 🥬 Vườn rau thủy canh 20m²
-- **Vấn đề:** Khó kiểm soát pH, EC
-- **Giải pháp:** Basic + 6 sensor
-- **Kết quả:** pH ổn định 5.8-6.2, giảm 50% thất bại
-
-### 🐟 Farm cá rồng Aquaponic 50m²
-- **Vấn đề:** Chất lượng nước
-- **Giải pháp:** Pro + sensor NH3/NO2/pH
-- **Kết quả:** Tự động báo, giảm 80% tỷ lệ chết
-
-### 🌾 Trang trại 5 hecta
-- **Vấn đề:** Quản lý nhiều zone
-- **Giải pháp:** Business + multi-farm
-- **Kết quả:** Central control, QR xuất khẩu
-
----
-
-## 📞 LIÊN HỆ
-
-**EcoSynTech Global**
-
-- 🌐 Website: [sẽ cập nhật]
-- 📧 Email: [sẽ cập nhật]
-- 📱 Hotline: [sẽ cập nhật]
-- 💬 Zalo: [sẽ cập nhật]
-
----
-
-## 📝 VERSION LOG
-
-| Version | Ngày | Nội dung |
-|---------|------|----------|
-| **V2.3.2** | 2026-04-17 | 58 skills, QR traceability, Aptos blockchain |
-| **GAS V9.5** | 2026-04-16 | AI Advisory, Smart Control, Telegram Bot |
-| **Firmware V8.5.0** | 2026-04-10 | ESP32 production ready |
+| Kênh | Thông tin |
+|------|----------|
+| 🌐 Website | [sẽ cập nhật] |
+| 📧 Email | [sẽ cập nhật] |
+| 📱 Hotline/Zalo | [sẽ cập nhật] |
+| 💬 Group | [sẽ cập nhật] |
 
 ---
 
