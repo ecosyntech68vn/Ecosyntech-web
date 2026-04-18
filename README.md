@@ -11,7 +11,7 @@ Hệ thống IoT nông nghiệp thông minh toàn diện với **62 skills tự 
 
 | Tính năng | Mô tả |
 |-----------|-------|
-| **60 Skills tự động** | Quản lý, vận hành, giám sát, tự sửa lỗi |
+| **62 Skills tự động** | Quản lý, vận hành, giám sát, tự sửa lỗi |
 | **QR Traceability** | Truy xuất nguồn gốc từ gieo trồng đến xuất bán |
 | **Aptos Blockchain** | Ghi hash (bật/tắt tùy chọn) |
 | **i18n đa ngôn ngữ** | Tiếng Việt, English, 中文 |
