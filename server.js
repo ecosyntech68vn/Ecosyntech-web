@@ -35,6 +35,7 @@ const firmwareRoutes = require('./src/routes/firmware');
 const rbacRoutes = require('./src/routes/rbac');
 const otaRoutes = require('./src/routes/ota');
 const salesRoutes = require('./src/routes/sales');
+const healthReportService = require('./src/services/healthReportService');
 
 function createApp() {
   const app = express();
@@ -310,6 +311,8 @@ async function startServer() {
     }
 
     startSensorSimulation();
+    
+    healthReportService.start();
     
     server.listen(config.port, () => {
       logger.info(`

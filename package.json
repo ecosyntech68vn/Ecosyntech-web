@@ -52,7 +52,9 @@
     "uuid": "^9.0.1",
     "websocket-stream": "^5.5.2",
     "winston": "^3.11.0",
-    "ws": "^8.16.0"
+    "ws": "^8.16.0",
+    "systeminformation": "^5.21.20",
+    "axios": "^1.6.5"
   },
 
   "devDependencies": {
