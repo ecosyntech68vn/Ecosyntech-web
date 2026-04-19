@@ -312,5 +312,113 @@ CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);
 CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_logs(entity_type, entity_id);
 
+-- =====================================================
+-- FARMOS CORE EXTENDED TABLES
+-- =====================================================
+
+-- Plans (Seasonal Plans)
+CREATE TABLE IF NOT EXISTS plans (
+  id TEXT PRIMARY KEY,
+  farm_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  season TEXT,
+  year INTEGER,
+  start_date TEXT,
+  end_date TEXT,
+  crop_id TEXT,
+  status TEXT DEFAULT 'draft',
+  progress REAL DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Assets
+CREATE TABLE IF NOT EXISTS assets (
+  id TEXT PRIMARY KEY,
+  farm_id TEXT,
+  area_id TEXT,
+  parent_id TEXT,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  model TEXT,
+  serial_number TEXT,
+  purchase_date TEXT,
+  purchase_price REAL,
+  location TEXT,
+  status TEXT DEFAULT 'active',
+  notes TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Asset History
+CREATE TABLE IF NOT EXISTS asset_history (
+  id TEXT PRIMARY KEY,
+  asset_id TEXT NOT NULL,
+  action TEXT NOT NULL,
+  description TEXT,
+  performed_by TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (asset_id) REFERENCES assets(id)
+);
+
+-- Quantities (Yield/Production Records)
+CREATE TABLE IF NOT EXISTS quantities (
+  id TEXT PRIMARY KEY,
+  farm_id TEXT,
+  area_id TEXT,
+  crop_id TEXT,
+  type TEXT NOT NULL,
+  quantity REAL NOT NULL,
+  unit TEXT,
+  quality_grade TEXT,
+  notes TEXT,
+  record_date TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (area_id) REFERENCES areas(id),
+  FOREIGN KEY (crop_id) REFERENCES crops(id)
+);
+
+-- Logs (Activity Logs)
+CREATE TABLE IF NOT EXISTS logs (
+  id TEXT PRIMARY KEY,
+  farm_id TEXT,
+  area_id TEXT,
+  asset_id TEXT,
+  worker_id TEXT,
+  type TEXT NOT NULL,
+  description TEXT,
+  value REAL,
+  attachments_json TEXT,
+  timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (farm_id) REFERENCES farms(id),
+  FOREIGN KEY (area_id) REFERENCES areas(id),
+  FOREIGN KEY (asset_id) REFERENCES assets(id),
+  FOREIGN KEY (worker_id) REFERENCES workers(id)
+);
+
+-- =====================================================
+-- INDEXES FOR CORE TABLES
+-- =====================================================
+
+CREATE INDEX IF NOT EXISTS idx_plans_farm ON plans(farm_id);
+CREATE INDEX IF NOT EXISTS idx_plans_status ON plans(status);
+CREATE INDEX IF NOT EXISTS idx_assets_farm ON assets(farm_id);
+CREATE INDEX IF NOT EXISTS idx_assets_area ON assets(area_id);
+CREATE INDEX IF NOT EXISTS idx_assets_type ON assets(type);
+CREATE INDEX IF NOT EXISTS idx_assets_parent ON assets(parent_id);
+CREATE INDEX IF NOT EXISTS idx_quantities_farm ON quantities(farm_id);
+CREATE INDEX IF NOT EXISTS idx_quantities_area ON quantities(area_id);
+CREATE INDEX IF NOT EXISTS idx_quantities_crop ON quantities(crop_id);
+CREATE INDEX IF NOT EXISTS idx_quantities_type ON quantities(type);
+CREATE INDEX IF NOT EXISTS idx_quantities_date ON quantities(record_date);
+CREATE INDEX IF NOT EXISTS idx_logs_farm ON logs(farm_id);
+CREATE INDEX IF NOT EXISTS idx_logs_area ON logs(area_id);
+CREATE INDEX IF NOT EXISTS idx_logs_asset ON logs(asset_id);
+CREATE INDEX IF NOT EXISTS idx_logs_type ON logs(type);
+CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp);
+
 -- Migration Complete
 -- Run seeders separately: seeders/001_crops.sql, seeders/002_aquaculture.sql

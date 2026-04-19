@@ -37,6 +37,7 @@ const otaRoutes = require('./src/routes/ota');
 const salesRoutes = require('./src/routes/sales');
 const healthReportRoutes = require('./src/routes/health-report');
 const farmsRoutes = require('./src/routes/farms');
+const farmosCoreRoutes = require('./src/routes/farmos-core');
 const dashboardRoutes = require('./src/routes/dashboard');
 const workersRoutes = require('./src/routes/workers');
 const supplyChainRoutes = require('./src/routes/supply-chain');
@@ -165,6 +166,7 @@ function createApp() {
   app.use('/api/sales', salesRoutes);
   app.use('/api/health-report', healthReportRoutes);
   app.use('/api/farms', farmsRoutes);
+  app.use('/api', farmosCoreRoutes); // /organizations, /plans, /assets, /logs, /quantities
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/workers', workersRoutes);
   app.use('/api/supply-chain', supplyChainRoutes);

@@ -47,7 +47,7 @@ Hệ thống quản lý nông nghiệp thông minh toàn diện với **quản l
 
 ### Yêu cầu hệ thống
 
-- Node.js 14+
+- Node.js 18+ (khuyến nghị) hoặc >=12.0.0 (tối thiểu)
 - 512MB RAM tối thiểu (khuyến nghị 1GB)
 - Windows 7+ hoặc Linux
 
