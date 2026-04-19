@@ -371,6 +371,10 @@ async function getAllPostgres(sql, params = []) {
   return result.rows;
 }
 
+function getDb() {
+  return db;
+}
+
 module.exports = {
   getDriverType: () => DRIVER_TYPE,
   isPostgreSQL: () => DRIVER_TYPE === 'postgresql',
@@ -380,5 +384,6 @@ module.exports = {
   runQuery,
   getOne,
   getAll,
+  getDb,
   closeDatabase
 };

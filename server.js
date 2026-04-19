@@ -18,7 +18,7 @@ if (!JWT_SECRET && nodeEnv === 'production') {
 
 const config = require('./src/config');
 const logger = require('./src/config/logger');
-const { initDatabase, closeDatabase, getAll, getOne, runQuery, saveDatabase, getDriverType } = require('./src/config/database-adapters');
+const { initDatabase, closeDatabase, getAll, getOne, runQuery, saveDatabase, getDriverType } = require('./src/config/database');
 const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
 const { initWebSocket, broadcast } = require('./src/websocket');
 
