@@ -3,6 +3,7 @@ const router = express.Router();
 const { getAll, getOne, runQuery } = require('../config/database');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { auth: authenticate } = require('../middleware/auth');
+const { verifyAuditChain } = require('../middleware/audit-tamper-proof');
 const { v4: uuidv4 } = require('uuid');
 
 router.get('/ip-whitelist', authenticate, asyncHandler(async (req, res) => {
@@ -46,7 +47,11 @@ router.get('/audit-log', authenticate, asyncHandler(async (req, res) => {
   res.json({ success: true, logs });
 }));
 
-router.post('/audit-log', asyncHandler(async (req, res) => {
+router.post('/audit-log', authenticate, asyncHandler(async (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+    return res.status(403).json({ error: 'Admin or Manager role required' });
+  }
+  
   const { action, userId, details, ip } = req.body;
   
   runQuery(
@@ -165,6 +170,20 @@ router.put('/rate-limit-config', authenticate, asyncHandler(async (req, res) => 
   );
   
   res.json({ success: true, message: 'Rate limit configuration updated' });
+}));
+
+router.get('/audit-chain-verify', authenticate, asyncHandler(async (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin role required' });
+  }
+  
+  const result = await verifyAuditChain();
+  res.json({
+    success: true,
+    chainValid: result.valid,
+    totalEntries: result.totalEntries,
+    message: result.valid ? 'Audit chain is valid - no tampering detected' : 'WARNING: Audit chain compromised!'
+  });
 }));
 
 module.exports = router;

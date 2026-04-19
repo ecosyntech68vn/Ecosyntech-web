@@ -48,6 +48,8 @@ const aiRoutes = require('./src/routes/ai');
 const cropsRoutes = require('./src/routes/crops');
 const healthReportService = require('./src/services/healthReportService');
 const waterOptimizationService = require('./src/services/waterOptimizationService');
+const { responseSignatureMiddleware } = require('./src/middleware/response-sign');
+const { getAuditHashMiddleware } = require('./src/middleware/audit-tamper-proof');
 
 function createApp() {
   const app = express();
@@ -88,6 +90,9 @@ function createApp() {
     });
     next();
   });
+
+  app.use(responseSignatureMiddleware);
+  app.use(getAuditHashMiddleware);
   
   app.get('/api/health', (req, res) => {
     res.json({
