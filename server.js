@@ -9,7 +9,7 @@ const os = require('os');
 
 const config = require('./src/config');
 const logger = require('./src/config/logger');
-const { initDatabase, closeDatabase, getAll, getOne, runQuery, saveDatabase } = require('./src/config/database');
+const { initDatabase, closeDatabase, getAll, getOne, runQuery, saveDatabase, getDriverType } = require('./src/config/database-adapters');
 const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
 const { initWebSocket, broadcast } = require('./src/websocket');
 
@@ -46,6 +46,7 @@ const financeRoutes = require('./src/routes/finance');
 const systemInfoRoutes = require('./src/routes/system-info');
 const aiRoutes = require('./src/routes/ai');
 const cropsRoutes = require('./src/routes/crops');
+const backupRoutes = require('./src/routes/backup');
 const healthReportService = require('./src/services/healthReportService');
 const waterOptimizationService = require('./src/services/waterOptimizationService');
 const { responseSignatureMiddleware } = require('./src/middleware/response-sign');
@@ -180,6 +181,7 @@ function createApp() {
   app.use('/api/system', systemInfoRoutes);
   app.use('/api/ai', aiRoutes);
   app.use('/api/crops', cropsRoutes);
+  app.use('/api/backup', backupRoutes);
 
   // Health endpoints for deployment health and readiness
   app.get('/health', (req, res) => {
