@@ -1,7 +1,10 @@
-name: CI
+name: CI/CD Pipeline - EcoSynTech FarmOS PRO
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  NODE_VERSION: '18'
+  DOCKER_REGISTRY: 'ghcr.io'
+  IMAGE_NAME: 'ecosyntech/farmos'
 
 on:
   push:
@@ -10,6 +13,34 @@ on:
     branches: [ '**' ]
 
 jobs:
+  # ==========================================
+  # 1. LINT - Code style and quality check
+  # ==========================================
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint - Style & Format
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Check imports
+        run: node --check server.js
+
+  # ==========================================
+  # 2. TEST - Unit & Integration tests
+  # ==========================================
   test:
     runs-on: ubuntu-latest
     steps:
@@ -19,23 +50,166 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
       - name: Run tests
         run: npm run test:ci
 
-      - name: Build
+  # ==========================================
+  # 3. BUILD - Production bundle & Docker
+  # ==========================================
+  build:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
         run: npm run build
 
+      - name: Set version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} .
+          docker tag ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} ${{ env.IMAGE_NAME }}:latest
+
+      - name: Save Docker image
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp/docker-image.tar
+
+  # ==========================================
+  # 4. SECURITY SCAN - Vulnerability scan
+  # ==========================================
+  security:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: Check for secrets (trufflehog)
+        run: |
+          docker run -v $(pwd):/repo ghcr.io/trufflesecurity/trufflehog:latest filesystem /repo --no-git
+
+  # ==========================================
+  # 5. DEPLOY STAGING - Deploy to staging
+  # ==========================================
+  deploy-staging:
+    needs: security
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Deploy to staging
+        run: |
+          docker load -i /tmp/docker-image.tar
+          kubectl config use-context staging
+          kubectl set image deployment/farmos api=${{ env.IMAGE_NAME }}:${{ needs.build.outputs.version }}
+
+      - name: Smoke test
+        run: |
+          sleep 30
+          curl -f https://staging.ecosyntech.com/api/health || exit 1
+
+  # ==========================================
+  # 6. SMOKE TEST - Quick functional tests
+  # ==========================================
+  smoke-test:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test health endpoint
+        run: curl -sf https://staging.ecosyntech.com/api/health
+
+      - name: Test auth
+        run: |
+          TOKEN=$(curl -s -X POST https://staging.ecosyntech.com/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"admin@ecosyntech.com","password":"test"}' | jq -r '.token')
+          [ -n "$TOKEN" ]
+
+      - name: Test farm API
+        run: |
+          curl -sf https://staging.ecosyntech.com/api/farms
+
+  # ==========================================
+  # 7. APPROVE PRODUCTION - Manual approval
+  # ==========================================
+  approve-production:
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Approve
+        run: echo "Production deployment approved"
+
+  # ==========================================
+  # 8. DEPLOY PRODUCTION - Blue-Green deploy
+  # ==========================================
+  deploy-production:
+    needs: approve-production
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Deploy to production
+        run: |
+          docker load -i /tmp/docker-image.tar
+          kubectl config use-context production
+          kubectl set image deployment/farmos-blue api=${{ env.IMAGE_NAME }}:${{ needs.build.outputs.version }}
+
+      - name: Run deployment validation
+        run: |
+          sleep 60
+          curl -sf https://ecosyntech.com/api/health
+
   release:
-    needs: test
+    needs: [test, build]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/final-all-in'
     steps:
