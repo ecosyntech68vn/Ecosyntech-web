@@ -15,7 +15,7 @@ Hệ thống quản lý nông nghiệp thông minh toàn diện với **quản l
 | **Người sáng lập** | Tạ Quang Thuận - CEO and FOUNDER |
 | **Điện thoại** | 0989516698 |
 | **Email** | kd.ecosyntech@gmail.com |
-| **Website** | https://ecosyntech.com |
+| **Website** | https://ecosyntechglobal.com |
 | **Năm thành lập** | 2026 |
 
 ---
