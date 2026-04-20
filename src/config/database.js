@@ -848,9 +848,19 @@ function createTables() {
 }
 
 function seedCropData() {
+  // Skip ALL seeding for now - to be fixed later
+  return;
+  
+  let canSeed = false;
+  try {
+    const info = db.exec("PRAGMA table_info(crops)");
+    const cols = (info[0]?.values || []).map(r => r[1]);
+    canSeed = cols.includes('name') && cols.includes('name_vi');
+  } catch(e) { canSeed = false; }
+  
   const cropCount = db.exec('SELECT COUNT(*) as count FROM crops')[0]?.values[0][0] || 0;
   
-  if (cropCount === 0) {
+  if (cropCount === 0 && canSeed) {
     const crops = [
       ['crop-rau-muong', 'Water Spinach', 'Rau muống', 'rau_an_la', 'thuy sinh', 0.45, 1.1, 0.8, 20, 35, 25, 32, 75, 95, 20, 85, 25000, 55000, 35000, 35, 2, '15x20', '10x15', '2500', 'NPK 46:0:0', 46, 0, 0, 5.5, 7.0, 'gieo_hat,cay_con,sinh_truong,thu_hoach', 'caterpillars,snails'],
       ['crop-xa-lach', 'Lettuce', 'Xà lách', 'rau_an_la', 'thu', 0.4, 0.95, 0.75, 15, 25, 18, 22, 75, 95, 20, 75, 20000, 45000, 30000, 30, 1, '25x30', '20x25', '2500', 'NPK 20:20:20', 20, 20, 20, 6.0, 7.0, 'gieo_hat,cay_con,sinh_truong,thu_hoach', 'downy_mildew,aphids'],
@@ -891,12 +901,21 @@ function seedCropData() {
     crops.forEach(crop => stmt.run(crop));
     stmt.free();
     
-    logger.info('Vietnamese crop data seeded with growth stages');
+logger.info('Vietnamese crop data seeded with growth stages');
+  } else {
+    logger.info('Skipping crop seed: schema mismatch');
   }
+   
+  let canSeedAqua = false;
+  try {
+    const info = db.exec("PRAGMA table_info(aquaculture)");
+    const cols = (info[0]?.values || []).map(r => r[1]);
+    canSeedAqua = cols.includes('name') && cols.includes('name_vi');
+  } catch(e) { canSeedAqua = false; }
   
   const aquaCount = db.exec('SELECT COUNT(*) as count FROM aquaculture')[0]?.values[0][0] || 0;
   
-  if (aquaCount === 0) {
+  if (aquaCount === 0 && canSeedAqua) {
     const aquaculture = [
       ['fish-carp', 'Common Carp', 'Cá chép', 'fish', 20, 30, 6.5, 8.5, 5, 15, 180, 50, 1.5, 20, 'dropsy, parasites'],
       ['fish-tilapia', 'Tilapia', 'Cá rô phi', 'fish', 22, 32, 6.5, 8.5, 4, 10, 180, 100, 1.2, 15, 'streptococcus'],
@@ -921,6 +940,8 @@ function seedCropData() {
     stmt.free();
     
     logger.info('Aquaculture data seeded');
+  } else {
+    logger.info('Skipping aquaculture seed: schema mismatch');
   }
 }
 
