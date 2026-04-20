@@ -10,7 +10,7 @@ module.exports = {
   },
   
   jwt: {
-    secret: process.env.JWT_SECRET,
+    secret: process.env.JWT_SECRET || 'test-secret-key-for-development-use-only',
     expiresIn: process.env.JWT_EXPIRES_IN || '7d'
   },
   

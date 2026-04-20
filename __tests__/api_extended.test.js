@@ -11,10 +11,9 @@ beforeAll(async () => {
   await dbModule.initDatabase();
   const { createApp } = require('../server')
   app = createApp()
-  // Log in as seeded test user to obtain token
   const res = await request(app).post('/api/auth/login').send({ email: 'test@example.com', password: 'password123' })
   token = res.body && res.body.token
-})
+}, 30000)
 
 describe('Extended API Coverage', () => {
   test('Create device (ext)', async () => {

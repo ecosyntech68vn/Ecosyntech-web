@@ -2,13 +2,14 @@ const jwt = require('jsonwebtoken');
 const logger = require('../config/logger');
 
 const nodeEnv = process.env.NODE_ENV || 'development';
-const JWT_SECRET = process.env.JWT_SECRET;
+let JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
   if (nodeEnv === 'production') {
     throw new Error('FATAL: JWT_SECRET is required in production. Set JWT_SECRET environment variable.');
   }
-  logger.warn('⚠️  JWT_SECRET not set. Using temporary secret. NOT FOR PRODUCTION.');
+  JWT_SECRET = 'test-secret-key-for-development-use-only';
+  logger.warn('⚠️  JWT_SECRET not set. Using default secret. NOT FOR PRODUCTION.');
 }
 
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
