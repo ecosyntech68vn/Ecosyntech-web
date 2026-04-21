@@ -170,7 +170,8 @@ app.use(compression());
   app.use(responseSignatureMiddleware);
   app.use(getAuditHashMiddleware);
   
-  app.get('/api/health', (req, res) => {
+  const { telemetryAccess } = require('./src/middleware/telemetry_rbac');
+  app.get('/api/health', telemetryAccess, (req, res) => {
     const memUsage = process.memoryUsage();
     const heapUsedMB = memUsage.heapUsed / 1024 / 1024;
     const isHealthy = heapUsedMB < 512;
@@ -279,7 +280,7 @@ app.use(compression());
   apiDoc.setupSwagger(app);
 
   // Health endpoints for deployment health and readiness
-  app.get('/health', (req, res) => {
+  app.get('/health', telemetryAccess, (req, res) => {
     var sysInfo = optimization.getSystemInfo();
     var memStatus = optimization.getMemoryStatus();
     var level = optimization.getOptimizationLevel();
@@ -298,7 +299,7 @@ app.use(compression());
     res.json(result);
   });
 
-  app.get('/readiness', async (req, res) => {
+  app.get('/readiness', telemetryAccess, async (req, res) => {
     try {
       // Use DB helper to perform a lightweight check if DB is initialized
       if (typeof getOne === 'function') {
