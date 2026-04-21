@@ -312,7 +312,7 @@ app.use(compression());
     }
   });
   
-  app.post('/api/export', (req, res) => {
+  app.post('/api/export', telemetryAccess, (req, res) => {
     const exportData = {
       exportedAt: new Date().toISOString(),
       version: '2.0.0',
