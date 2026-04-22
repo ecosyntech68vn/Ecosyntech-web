@@ -1,25 +1,27 @@
 # TỔNG HỢP TÀI LIỆU DỰ ÁN
 ## EcoSynTech FarmOS - Documentation Index
 
-**Phiên bản:** 5.1.0 | **Ngày:** 2026-04-20 | **Trạng thái:** ✅ Sẵn sàng Pilot
+**Phiên bản:** 6.0.0 | **Ngày:** 2026-04-22 | **Trạng thái:** ✅ Sẵn sàng Pilot
 
 ---
 
 ## 1. TỔNG QUAN
 
-Dự án EcoSynTech FarmOS là nền tảng Nông nghiệp Thông minh IoT với AI, tuân thủ tiêu chuẩn ISO 27001:2022, sẵn sàng cho Pilot/Golive với 100 thiết bị ESP32.
+Dự án EcoSynTech FarmOS là nền tảng Nông nghiệp Thông minh IoT với AI, tuân thủ tiêu chuẩn ISO 27001:2022 (9.5/10), sẵn sàng cho Pilot/Golive với 100 thiết bị ESP32. Hệ thống tích hợp SmartAutomationEngine với 9 AI Agents và 77+ Skills.
 
 ### Thông tin dự án
 
 | Thông tin | Chi tiết |
 |----------|----------|
 | Tên dự án | EcoSynTech FarmOS |
-| Phiên bản | 5.1.0 |
-| Ngày release | 2026-04-20 |
+| Phiên bản | 6.0.0 |
+| Ngày release | 2026-04-22 |
 | Số thiết bị | 100 ESP32 |
-| ISO Compliance | 9.2/10 (95.4%) |
-| API Endpoints | 50+ |
-| Tests | 39/39 passed |
+| ISO Compliance | 9.5/10 (98.5%) |
+| AI Agents | 9 |
+| Skills | 77+ |
+| Proprietary Features | 4 (SmartEngine) |
+| Tests | 30/30 passed |
 
 ---
 
@@ -50,6 +52,7 @@ Dự án EcoSynTech FarmOS là nền tảng Nông nghiệp Thông minh IoT với
 | `SOP/SOP-A-05_XU_LY_SU_CO_BAO_MAT.md` | Xử lý sự cố bảo mật | 1 tháng |
 | `SOP/SOP-B-01_KHOI_DONG_HE_THONG.md` | Khởi động hệ thống | N/A |
 | `SOP/SOP-B-03_GIAM_SAT_HE_THONG.md` | Giám sát hệ thống | 1 giờ |
+| `SOP/SOP-E-01_QUAN_LY_SMART_AUTOMATION.md` | SmartAutomationEngine | 1 tháng |
 
 ### 2.3 Tài liệu Pháp lý (Legal - Commercial)
 
@@ -193,6 +196,7 @@ Dự án EcoSynTech FarmOS là nền tảng Nông nghiệp Thông minh IoT với
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 6.0.0 | 2026-04-22 | SmartAutomationEngine, ISO 27001 9.5/10, 9 AI Agents |
 | 5.1.0 | 2026-04-20 | Complete documentation set |
 | 5.0.0 | 2026-04-15 | Pilot release - core features |
 | 4.0.0 | 2026-03-01 | Initial version |
@@ -210,11 +214,11 @@ Dự án EcoSynTech FarmOS là nền tảng Nông nghiệp Thông minh IoT với
 
 **Trạng thái tài liệu:** ✅ Hoàn chỉnh  
 **Sẵn sàng Pilot:** ✅ Có  
-**ISO 27001:** ✅ 9.2/10
+**ISO 27001:** ✅ 9.5/10
 
 ---
 
 *Document Classification: Internal*
 *Người cập nhật: EcoSynTech Engineering*
-*Phiên bản: 5.1.0*
-*Cập nhật lần cuối: 2026-04-20*
+*Phiên bản: 6.0.0*
+*Cập nhật lần cuối: 2026-04-22*

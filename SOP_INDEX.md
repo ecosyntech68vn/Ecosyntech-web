@@ -1,5 +1,5 @@
 # EcoSynTech FarmOS - STANDARD OPERATING PROCEDURES (SOP) INDEX
-# Phiên bản: 5.0.0 | Ngày: 2026-04-20
+# Phiên bản: 6.0.0 | Ngày: 2026-04-22
 
 ---
 
@@ -16,6 +16,7 @@
 | **SOP-A-05** | Xử lý sự cố bảo mật | SOC | 1 tháng |
 | **SOP-A-06** | Giám sát và ghi nhận | IT Admin | 1 tuần |
 | **SOP-A-07** | Quản lý nhà cung cấp | Procurement | 6 tháng |
+| **SOP-A-08** | Quản lý Key Rotation | IT Admin | 3 tháng |
 
 ### Series B: Operations (Vận hành)
 
@@ -43,6 +44,14 @@
 | **SOP-D-01** | Hỗ trợ người dùng | Support | Khi cần |
 | **SOP-D-02** | Báo cáo sự cố | Support | 24 giờ |
 | **SOP-D-03** | Đào tạo người dùng | HR | 6 tháng |
+
+### Series E: AI Automation (AI Tự động - v6.0)
+
+| SOP Code | Title | Owner | Review Cycle |
+|---------|-------|-------|---------------|
+| **SOP-E-01** | Quản lý SmartAutomationEngine | AI Ops | 1 tháng |
+| **SOP-E-02** | Giám sát AI Agents | AI Ops | 1 giờ |
+| **SOP-E-03** | Xử lý Predictive Alerts | AI Ops | 15 phút |
 
 ---
 

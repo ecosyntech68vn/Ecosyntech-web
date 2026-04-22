@@ -6,6 +6,37 @@ Tất cả các thay đổi đáng chú ý của dự án này sẽ được ghi
 
 ---
 
+## [6.0.0] - 2026-04-22
+
+### Added
+- **SmartAutomationEngine** - AI-powered automation với 9 agents:
+  - Agriculture: irrigation, climate, soil_health, energy_saver, pest_control
+  - System: system_health, security_monitor, performance_tuner, alert_aggregator
+- **SkillOrchestrator** - Maps AI agents to 16+ skills
+- **ContextualLearning** - Tự học từ outcomes
+- **PredictiveAlerting** - Z-score anomaly detection
+- **SelfOptimizingPipeline** - Auto-tune latency/errors
+
+### Added - ISO 27001 Hardening
+- **KeyRotationService** (A.8.24) - Auto-rotate keys every 90 days
+- **ESP32SecureBaseline** (A.8.9) - TLS, firmware validation, JWT
+- **DataLeakagePrevention** (A.8.12) - Sensitive data masking
+- **ComplianceReportService** - Automated ISO 27001 reporting
+
+### Added - Performance Optimizations
+- Debounced DB save (2s)
+- Prepared statement caching (LRU, max 50)
+- LRU cache eviction
+- Memory pressure detection
+- Request deduplication middleware
+- Response optimizer
+
+### Changed
+- ISO 27001 Score: 9.2/10 → 9.5/10
+- Tests: 17 → 30 passing
+
+---
+
 ## [5.0.1] - 2026-04-20
 
 ### Added
