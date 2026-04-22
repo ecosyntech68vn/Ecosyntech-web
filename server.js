@@ -67,6 +67,7 @@ const healthReportService = require('./src/services/healthReportService');
 const waterOptimizationService = require('./src/services/waterOptimizationService');
 const { responseSignatureMiddleware } = require('./src/middleware/response-sign');
 const { getAuditHashMiddleware } = require('./src/middleware/audit-tamper-proof');
+const { requestDeduplication } = require('./src/middleware/requestDeduplication');
 const path = require('path');
 
 function createApp() {
@@ -146,6 +147,7 @@ app.use(compression());
     message: { error: 'Too many requests, please try again later.' }
   });
   app.use('/api/', limiter);
+  app.use('/api/', requestDeduplication);
   
   app.use((req, res, next) => {
     req.startTime = Date.now();
@@ -528,38 +530,59 @@ async function startServer() {
   }
 }
 
+let sensorCache = null;
+let lastSensorUpdate = 0;
+const SENSOR_CACHE_TTL = 2000;
+
 function startSensorSimulation() {
   const sensors = ['temperature', 'humidity', 'soil', 'light', 'water', 'co2', 'ec', 'ph'];
   
   setInterval(() => {
     try {
-      sensors.forEach(sensor => {
-        const current = getOne('SELECT * FROM sensors WHERE type = ?', [sensor]);
-        if (!current) return;
+      const now = Date.now();
+      if (!sensorCache || now - lastSensorUpdate > SENSOR_CACHE_TTL) {
+        sensorCache = getAll('SELECT * FROM sensors');
+        lastSensorUpdate = now;
+      }
+      
+      const updates = [];
+      const broadcasts = [];
+      
+      sensorCache.forEach(current => {
+        if (!sensors.includes(current.type)) return;
         
-        const variance = sensor === 'ph' ? 0.1 : (sensor === 'ec' ? 0.05 : 1);
+        const variance = current.type === 'ph' ? 0.1 : (current.type === 'ec' ? 0.05 : 1);
         const delta = (Math.random() - 0.5) * variance;
         let newValue = current.value + delta;
         
-        if (sensor === 'temperature') {
+        if (current.type === 'temperature') {
           newValue = Math.max(current.min_value, Math.min(current.max_value, newValue));
-        } else if (sensor === 'soil' || sensor === 'water') {
+        } else if (current.type === 'soil' || current.type === 'water') {
           newValue = Math.max(0, Math.min(100, newValue));
         }
         
-        const roundedValue = parseFloat(newValue.toFixed(sensor === 'ph' || sensor === 'ec' ? 2 : 1));
+        const roundedValue = parseFloat(newValue.toFixed(current.type === 'ph' || current.type === 'ec' ? 2 : 1));
         
-        runQuery(
-          'UPDATE sensors SET value = ?, timestamp = datetime("now") WHERE type = ?',
-          [roundedValue, sensor]
-        );
-        
-        broadcast({
-          type: 'sensor-update',
-          data: { type: sensor, value: roundedValue, unit: current.unit },
-          timestamp: new Date().toISOString()
-        });
+        if (Math.abs(roundedValue - current.value) > 0.01) {
+          updates.push({ type: current.type, value: roundedValue });
+          broadcasts.push({
+            type: 'sensor-update',
+            data: { type: current.type, value: roundedValue, unit: current.unit },
+            timestamp: new Date().toISOString()
+          });
+        }
       });
+      
+      if (updates.length > 0) {
+        updates.forEach(u => {
+          runQuery(
+            'UPDATE sensors SET value = ?, timestamp = datetime("now") WHERE type = ?',
+            [u.value, u.type]
+          );
+        });
+        
+        broadcasts.forEach(b => broadcast(b));
+      }
       
       checkRules();
     } catch (err) {
@@ -568,16 +591,29 @@ function startSensorSimulation() {
   }, 5000);
 }
 
+let rulesCache = null;
+let rulesCacheTime = 0;
+const RULES_CACHE_TTL = 30000;
+
 function checkRules() {
   try {
-    const rules = getAll('SELECT * FROM rules WHERE enabled = 1');
-    const sensors = getAll('SELECT * FROM sensors');
+    const now = Date.now();
+    if (!rulesCache || now - rulesCacheTime > RULES_CACHE_TTL) {
+      const rawRules = getAll('SELECT * FROM rules WHERE enabled = 1');
+      rulesCache = rawRules.map(r => ({
+        ...r,
+        _condition: JSON.parse(r.condition),
+        _action: JSON.parse(r.action)
+      }));
+      rulesCacheTime = now;
+    }
     
+    const sensors = getAll('SELECT * FROM sensors');
     const sensorMap = {};
     sensors.forEach(s => { sensorMap[s.type] = s; });
     
-    rules.forEach(rule => {
-      const condition = JSON.parse(rule.condition);
+    rulesCache.forEach(rule => {
+      const condition = rule._condition;
       const sensor = sensorMap[condition.sensor];
       
       if (!sensor) return;
@@ -595,16 +631,15 @@ function checkRules() {
       }
       
       if (triggered) {
-        const now = new Date();
-        const lastTriggered = rule.last_triggered ? new Date(rule.last_triggered) : null;
+        const triggerTime = rule.last_triggered ? new Date(rule.last_triggered).getTime() : 0;
         
-        if (!lastTriggered || (now - lastTriggered) >= rule.cooldown_minutes * 60 * 1000) {
+        if (!rule.last_triggered || (now - triggerTime) >= rule.cooldown_minutes * 60 * 1000) {
           runQuery(
             'UPDATE rules SET trigger_count = trigger_count + 1, last_triggered = datetime("now") WHERE id = ?',
             [rule.id]
           );
           
-          const action = JSON.parse(rule.action);
+          const action = rule._action;
           
           if (action.type === 'alert') {
             const alertId = `alert-${Date.now()}`;
