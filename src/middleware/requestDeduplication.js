@@ -34,13 +34,15 @@ function requestDeduplication(req, res, next) {
   next();
 }
 
-setInterval(() => {
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(() => {
   const now = Date.now();
   for (const [key, value] of requestCache) {
     if (now - value.timestamp > 5000) {
       requestCache.delete(key);
     }
   }
-}, 10000);
+  }, 10000);
+}
 
 module.exports = { requestDeduplication };

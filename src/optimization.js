@@ -135,13 +135,15 @@ function handleMemoryPressure() {
   }
 }
 
-setInterval(() => {
-  const mem = process.memoryUsage();
-  const heapUsedMB = mem.heapUsed / 1024 / 1024;
-  if (heapUsedMB > 400) {
-    handleMemoryPressure();
-  }
-}, 30000);
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(() => {
+    const mem = process.memoryUsage();
+    const heapUsedMB = mem.heapUsed / 1024 / 1024;
+    if (heapUsedMB > 400) {
+      handleMemoryPressure();
+    }
+  }, 30000);
+}
 
 function optimizeForDevice(context = {}) {
   const level = getOptimizationLevel();

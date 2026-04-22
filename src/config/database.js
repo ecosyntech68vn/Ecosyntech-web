@@ -1294,11 +1294,13 @@ function optimizeDatabase() {
   }
 }
 
-setInterval(() => {
-  if (db) {
-    optimizeDatabase();
-  }
-}, 30 * 60 * 1000);
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(() => {
+    if (db) {
+      optimizeDatabase();
+    }
+  }, 30 * 60 * 1000);
+}
 
 module.exports = {
   initDatabase,

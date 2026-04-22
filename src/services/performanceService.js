@@ -134,14 +134,16 @@ function invalidateCache(farmId = null) {
   cacheInvalidate('devices:');
 }
 
-setInterval(() => {
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of cache) {
     if (now - entry.timestamp > CACHE_TTL * 2) {
       cache.delete(key);
     }
   }
-}, 60000);
+  }, 60000);
+}
 
 module.exports = {
   getDashboardOverview,

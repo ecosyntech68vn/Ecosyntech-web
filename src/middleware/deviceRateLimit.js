@@ -63,7 +63,9 @@ function cleanupRateLimits() {
   }
 }
 
-setInterval(cleanupRateLimits, 60000);
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(cleanupRateLimits, 60000);
+}
 
 module.exports = {
   rateLimitPerDevice,
