@@ -10,5 +10,8 @@ module.exports = {
   ],
   verbose: true,
   testTimeout: 10000,
-  collectCoverage: false
+  collectCoverage: false,
+  setupFiles: [
+    '<rootDir>/jest.setupEnv.js'
+  ]
 };

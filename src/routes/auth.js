@@ -27,7 +27,7 @@ router.post('/register', validateMiddleware('auth.register'), asyncHandler(async
   );
   
   const token = jwt.sign(
-    { id, email, name, role: 'user' },
+    { sub: id, id, email, name, role: 'user' },
     config.jwt.secret,
     { expiresIn: config.jwt.expiresIn }
   );
@@ -58,7 +58,7 @@ router.post('/login', validateMiddleware('auth.login'), asyncHandler(async (req,
   }
   
   const token = jwt.sign(
-    { id: user.id, email: user.email, name: user.name, role: user.role },
+    { sub: user.id, id: user.id, email: user.email, name: user.name, role: user.role },
     config.jwt.secret,
     { expiresIn: config.jwt.expiresIn }
   );

@@ -2,6 +2,9 @@ const requestCache = new Map();
 const DEDUP_WINDOW_MS = 500;
 
 function requestDeduplication(req, res, next) {
+  if (req.headers.authorization || req.headers['x-api-key']) {
+    return next();
+  }
   const key = `${req.method}:${req.path}:${JSON.stringify(req.query)}:${JSON.stringify(req.body).substring(0, 200)}`;
   const now = Date.now();
   
