@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 const aiEngine = require('../services/aiEngine');
-const { getAll, getOne, runQuery } = require('../config/database');
+const { getAll, runQuery } = require('../config/database');
 
 const TFLiteDiseasePredictor = require('../services/ai/tfliteDiseasePredictor');
 const LSTMIrrigationPredictor = require('../services/ai/lstmIrrigationPredictor');
@@ -252,6 +252,38 @@ router.post('/predict-irrigation-lstm', async (req, res) => {
     }
 
     res.json({ ok: true, data: result });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+router.get('/governance/report', auth, async (req, res) => {
+  try {
+    const report = aiEngine.getTelemetryHealth(req.query.farm_id);
+    res.json({ ok: true, data: report });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+router.get('/governance/audit', auth, async (req, res) => {
+  try {
+    const n = Math.min(parseInt(req.query.limit) || 20, 100);
+    const audit = aiEngine.getAuditTrail(n);
+    res.json({ ok: true, data: audit });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+router.post('/governance/validate', auth, async (req, res) => {
+  try {
+    const { data } = req.body;
+    if (!data || typeof data !== 'object') {
+      return res.status(400).json({ ok: false, error: 'data object required' });
+    }
+    const validation = aiEngine.validateInputData(data);
+    res.json({ ok: true, data: validation });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }

@@ -50,8 +50,20 @@ This document serves as the primary evidence repository for ISO 27001:2022 A.14 
 | **E-A14.3-03** | Sensor data handling (privacy) | src/middleware/audit-tamper-proof.js | 2026-04-23 |
 | **E-A14.3-04** | Input sanitization for AI inputs | src/middleware/errorHandler.js | 2026-04-23 |
 | **E-A14.3-05** | AI data minimization (no PII in logs) | SOP_AI_GOVERNANCE.md §SOP-E-05 | 2026-04-23 |
+| **E-A14.3-06** | IoT Data Taxonomy | IoT_DATA_TAXONOMY.md | 2026-04-23 |
+| **E-A14.3-07** | AI Telemetry Governance Service | src/services/aiTelemetry.js | 2026-04-23 |
+| **E-A14.3-08** | Data quality rules (8 sensor types) | src/services/aiTelemetry.js:DATA_QUALITY_RULES | 2026-04-23 |
+| **E-A14.3-09** | Data quality assessment with scoring | src/services/aiEngine.js:predictIrrigation() | 2026-04-23 |
+| **E-A14.3-10** | AI prediction audit trail (DB) | migrations/007_ai_telemetry_governance.sql | 2026-04-23 |
+| **E-A14.3-11** | Governance endpoints | src/routes/ai.js:GET /governance/* | 2026-04-23 |
+| **E-A14.3-12** | AI Telemetry tests | __tests__/ai_telemetry.test.js (22 tests) | 2026-04-23 |
 
-**Verification**: Review DATA_RETENTION_POLICY.md for sensor data retention periods. Confirm no PII fields in AI decision logs.
+**Verification**:
+- Review IoT_DATA_TAXONOMY.md for sensor data classification
+- Check GET /api/ai/governance/report for data governance status
+- Check GET /api/ai/governance/audit for prediction audit trail
+- Verify ai_prediction_audit table exists and is populated
+- Run `POST /api/ai/governance/validate` with test sensor data
 
 ---
 
@@ -66,6 +78,8 @@ This document serves as the primary evidence repository for ISO 27001:2022 A.14 
 | **E-A14.4-05** | Rate limiting on AI endpoints | server.js:rateLimit | 2026-04-23 |
 | **E-A14.4-06** | Access control for models (path-based) | src/bootstrap/modelLoader.js | 2026-04-23 |
 | **E-A14.4-07** | SOP-E-04 §5: Security Controls | SOP_AI_GOVERNANCE.md §SOP-E-04 | 2026-04-23 |
+| **E-A14.4-08** | Data hash for input lineage | src/services/aiTelemetry.js:hashData() | 2026-04-23 |
+| **E-A14.4-09** | Input enrichment with classification | src/services/aiTelemetry.js:enrichSensorData() | 2026-04-23 |
 
 **Verification**: 
 - Verify /api/bootstrap/* returns 401 without token
@@ -120,12 +134,14 @@ This document serves as the primary evidence repository for ISO 27001:2022 A.14 
 ### Source Code
 | Artifact | File | Language | Lines |
 |----------|------|----------|-------|
-| Model Loader | src/bootstrap/modelLoader.js | JavaScript | 146 |
-| Bootstrap API | src/bootstrap/bootstrap_api.js | JavaScript | 31 |
+| Model Loader | src/bootstrap/modelLoader.js | JavaScript | 236 |
+| Bootstrap API | src/bootstrap/bootstrap_api.js | JavaScript | 55 |
 | Bootstrap Script | scripts/setup-models.sh | Bash | ~70 |
 | AI Predictor (TFLite) | src/services/ai/tfliteDiseasePredictor.js | JavaScript | 94 |
 | AI Predictor (ONNX) | src/services/ai/lstmIrrigationPredictor.js | JavaScript | 102 |
-| Bootstrap CLI | bin/bootstrap-ai.js | JavaScript | 44 |
+| Bootstrap CLI | bin/bootstrap-ai.js | JavaScript | 137 |
+| AI Engine | src/services/aiEngine.js | JavaScript | 476 |
+| AI Telemetry Service | src/services/aiTelemetry.js | JavaScript | 312 |
 
 ### Tests
 | Test Suite | File | Coverage |
@@ -134,6 +150,7 @@ This document serves as the primary evidence repository for ISO 27001:2022 A.14 
 | Bootstrap API tests | __tests__/bootstrap_api.test.js | applyConfig/reload |
 | Smart Automation tests | __tests__/smart_automation.test.js | decision logging |
 | AI Manager tests | __tests__/ai_manager.test.js | 17 agent tests |
+| AI Telemetry tests | __tests__/ai_telemetry.test.js | 22 tests |
 
 ### Configuration
 | Artifact | File | Purpose |
@@ -188,6 +205,7 @@ Use this checklist during internal or external ISO 27001 audits.
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 6.0.0 | 2026-04-23 | AI Ops Lead | Initial evidence pack for A.14 controls |
+| 6.1.0 | 2026-04-23 | AI Ops Lead | Phase 2: add IoT telemetry governance (E-A14.3-06 to 12, E-A14.4-08 to 09), 22 telemetry tests, aiEngine and aiTelemetry service artifacts |
 
 ---
 

@@ -1,6 +1,8 @@
 const { getAll, getOne, runQuery } = require('../config/database');
 const logger = require('../config/logger');
-const si = require('systeminformation');
+const aiTelemetry = require('./aiTelemetry');
+
+const MIN_DATA_QUALITY_SCORE = 40;
 
 class AIEngine {
   constructor() {
@@ -22,7 +24,7 @@ class AIEngine {
     }
   }
 
-  async getSoilMoisture(farmId) {
+  async getSoilMoisture(_farmId) {
     try {
       const sensor = getOne('SELECT value FROM sensors WHERE type = \'soil\'');
       return sensor?.value || 30;
@@ -37,16 +39,32 @@ class AIEngine {
     const hourly = weatherData?.hourly;
     const now = new Date();
     const idx = hourly?.time?.findIndex(t => new Date(t) >= now) || 0;
-    
+
     const temp = hourly?.temperature_2m?.[idx] || 28;
     const humidity = hourly?.relative_humidity_2m?.[idx] || 70;
     const precipProb = hourly?.precipitation_probability?.[idx] || 0;
-    
+    const rainfall = hourly?.precipitation?.[idx] || 0;
+
+    const rawInput = { soilMoisture, temp, humidity, precipProb, rainfall };
+    const quality = aiTelemetry.assessDataQuality({
+      soil: soilMoisture, temperature: temp, humidity, rainfall
+    });
+
+    if (!quality.meetsMinimumQuality && quality.score < MIN_DATA_QUALITY_SCORE) {
+      logger.warn(`[AIEngine] Irrigation prediction skipped: quality score ${quality.score} below threshold`);
+      return {
+        prediction: null,
+        reason: 'low_data_quality',
+        quality,
+        auditId: null
+      };
+    }
+
     let shouldIrrigate = false;
     let duration = 0;
     let reason = '';
     let confidence = 0.85;
-    const priority = 'medium';
+    let priority = 'medium';
 
     if (soilMoisture < 25) {
       shouldIrrigate = true;
@@ -87,11 +105,25 @@ class AIEngine {
       ]
     );
 
+    const auditEntry = aiTelemetry.logPredictionAudit({
+      predictionType: 'irrigation',
+      modelId: 'model-001',
+      inputHash: aiTelemetry.hashData(rawInput),
+      outputHash: aiTelemetry.hashData({ shouldIrrigate, duration }),
+      qualityScore: quality.score,
+      qualityGrade: quality.grade,
+      inputSources: ['sensors:soil', 'sensors:temperature', 'sensors:humidity', 'weather:open-meteo'],
+      dataClassification: aiTelemetry.getClassification('prediction_input')
+    });
+
     return {
       prediction: { shouldIrrigate, duration, confidence },
       reason,
       recommendation: { id: recId, priority, status: 'open' },
-      weather: { temp, humidity, precipProb, soilMoisture }
+      weather: { temp, humidity, precipProb, soilMoisture },
+      dataQuality: quality,
+      inputHash: auditEntry.inputHash,
+      auditId: auditEntry.id
     };
   }
 
@@ -100,6 +132,11 @@ class AIEngine {
     const weatherData = await this.getWeatherData();
     const humidity = weatherData?.hourly?.relative_humidity_2m?.[0] || 70;
     const temp = weatherData?.hourly?.temperature_2m?.[0] || 28;
+
+    const rawInput = { soilMoisture, humidity, temp };
+    const quality = aiTelemetry.assessDataQuality({
+      soil: soilMoisture, humidity, temperature: temp
+    });
 
     let shouldFertilize = false;
     let fertilizerType = 'NPK';
@@ -133,13 +170,25 @@ class AIEngine {
       );
     }
 
+    aiTelemetry.logPredictionAudit({
+      predictionType: 'fertilization',
+      modelId: null,
+      inputHash: aiTelemetry.hashData(rawInput),
+      outputHash: aiTelemetry.hashData({ shouldFertilize, fertilizerType, amount }),
+      qualityScore: quality.score,
+      qualityGrade: quality.grade,
+      inputSources: ['sensors:soil', 'sensors:temperature', 'sensors:humidity', 'weather:open-meteo'],
+      dataClassification: aiTelemetry.getClassification('prediction_input')
+    });
+
     return {
       shouldFertilize,
       fertilizerType,
       amount,
       reason,
       priority,
-      recommendation: { id: recId, status: shouldFertilize ? 'open' : 'none' }
+      recommendation: { id: recId, status: shouldFertilize ? 'open' : 'none' },
+      dataQuality: quality
     };
   }
 
@@ -148,6 +197,12 @@ class AIEngine {
     try {
       const sensors = getAll('SELECT * FROM sensors');
       const devices = getOne('SELECT COUNT(*) as total, SUM(CASE WHEN status = \'online\' THEN 1 ELSE 0 END) as online FROM devices');
+
+      const sensorData = {};
+      for (const s of sensors) {
+        if (s.type && s.value !== undefined) sensorData[s.type] = s.value;
+      }
+      const quality = aiTelemetry.assessDataQuality(sensorData);
 
       for (const sensor of sensors) {
         if (sensor.type === 'soil' && sensor.value < 10) {
@@ -199,7 +254,18 @@ class AIEngine {
         );
       }
 
-      return { anomalies, count: anomalies.length };
+      aiTelemetry.logPredictionAudit({
+        predictionType: 'anomaly',
+        modelId: null,
+        inputHash: aiTelemetry.hashData(sensorData),
+        outputHash: aiTelemetry.hashData(anomalies.map(a => a.metric)),
+        qualityScore: quality.score,
+        qualityGrade: quality.grade,
+        inputSources: ['sensors', 'devices'],
+        dataClassification: aiTelemetry.getClassification('anomaly')
+      });
+
+      return { anomalies, count: anomalies.length, dataQuality: quality };
     } catch (e) {
       logger.warn('[AI] Anomaly detection error:', e.message);
       return { anomalies: [], count: 0 };
@@ -260,6 +326,9 @@ class AIEngine {
     const humidity = sensors.find(s => s.type === 'humidity')?.value || 70;
     const temp = sensors.find(s => s.type === 'temperature')?.value || 28;
 
+    const rawInput = { humidity, temp };
+    const quality = aiTelemetry.assessDataQuality({ humidity, temperature: temp });
+
     let riskScore = 0;
     let riskLevel = 'low';
     let diseases = [];
@@ -290,12 +359,24 @@ class AIEngine {
       );
     }
 
+    aiTelemetry.logPredictionAudit({
+      predictionType: 'disease-risk',
+      modelId: 'model-001',
+      inputHash: aiTelemetry.hashData(rawInput),
+      outputHash: aiTelemetry.hashData({ riskScore, riskLevel, diseases }),
+      qualityScore: quality.score,
+      qualityGrade: quality.grade,
+      inputSources: ['sensors:temperature', 'sensors:humidity'],
+      dataClassification: aiTelemetry.getClassification('prediction_input')
+    });
+
     return {
       riskScore,
       riskLevel,
       diseases,
       explanation,
-      conditions: { humidity, temp }
+      conditions: { humidity, temp },
+      dataQuality: quality
     };
   }
 
@@ -377,6 +458,18 @@ class AIEngine {
       summary: await this.generateSummary(farmId, 'daily')
     };
     return results;
+  }
+
+  getTelemetryHealth() {
+    return aiTelemetry.getDataGovernanceReport();
+  }
+
+  getAuditTrail(n = 20) {
+    return aiTelemetry.getRecentAudit(n);
+  }
+
+  validateInputData(data) {
+    return aiTelemetry.assessDataQuality(data);
   }
 }
 
