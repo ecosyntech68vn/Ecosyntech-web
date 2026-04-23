@@ -11,18 +11,24 @@
       "file": "plant_disease.tflite",
       "sizeMB": 3.9,
       "version": "1.0",
-      "loaded": false,
-      "loadedAt": null,
+      "loaded": true,
+      "loadedAt": "2026-04-23T17:46:09.782Z",
       "source": "https://github.com/Poulinakis-Konstantinos/Deep-Learning-Plant-Disease-Detector",
       "sourceType": "GitHub",
       "classes": 38,
-      "inputSpec": { "format": "image", "size": "224x224x3" },
-      "outputSpec": { "format": "disease_class", "confidence": "percentage" },
+      "inputSpec": {
+        "format": "image",
+        "size": "224x224x3"
+      },
+      "outputSpec": {
+        "format": "disease_class",
+        "confidence": "percentage"
+      },
       "bootstrapFlag": "AI_SMALL_MODEL",
       "bootstrapDefault": true,
       "fallbackMethod": "heuristic",
       "lastHealthCheck": null,
-      "healthStatus": "unknown",
+      "healthStatus": "healthy",
       "notes": "MobileNetV2 fine-tuned on PlantVillage dataset. 38 disease classes across 14 crops.",
       "securityClassification": "Internal",
       "dataSensitivity": "Low"
@@ -34,18 +40,30 @@
       "file": "irrigation_lstm.onnx",
       "sizeMB": 10,
       "version": "1.0",
-      "loaded": false,
-      "loadedAt": null,
+      "loaded": true,
+      "loadedAt": "2026-04-23T17:46:59.893Z",
       "source": "AI_ONNX_URL env var (user-provided)",
       "sourceType": "HTTP or Google Drive",
       "classes": null,
-      "inputSpec": { "format": "tensor", "shape": "1x3x4", "features": ["temp", "humidity", "rainfall", "soilMoisture"] },
-      "outputSpec": { "format": "water_mm", "unit": "mm" },
+      "inputSpec": {
+        "format": "tensor",
+        "shape": "1x3x4",
+        "features": [
+          "temp",
+          "humidity",
+          "rainfall",
+          "soilMoisture"
+        ]
+      },
+      "outputSpec": {
+        "format": "water_mm",
+        "unit": "mm"
+      },
       "bootstrapFlag": "AI_LARGE_MODEL",
       "bootstrapDefault": false,
       "fallbackMethod": "heuristic_water_calc",
       "lastHealthCheck": null,
-      "healthStatus": "unknown",
+      "healthStatus": "healthy",
       "notes": "LSTM model for irrigation prediction. Optional - not included in repo. Requires user to provide ONNX file via AI_ONNX_URL.",
       "securityClassification": "Internal",
       "dataSensitivity": "Low",
@@ -63,6 +81,11 @@
     "versionTracking": true,
     "healthCheckIntervalHours": 24,
     "maxModelSizeMB": 5000,
-    "allowedSources": ["github.com", "drive.google.com", "http", "https"]
+    "allowedSources": [
+      "github.com",
+      "drive.google.com",
+      "http",
+      "https"
+    ]
   }
 }
