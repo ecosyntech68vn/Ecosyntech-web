@@ -11,7 +11,7 @@
 
 | Path | Target | Technology | Resources | Use Case |
 |------|-------|------------|-----------|----------|----------|
-| **Lite** (Default) | Nông dân, HTX nhỏ (1-2GB RAM) | SQLite + In-memory | <512MB | 100 ESP32 |
+| **Lite** (Default) | Nông dân, HTX nhỏ (RAM 1-2GB) | SQLite + In-memory | 512MB-1GB | 100 ESP32 |
 | **Pro** | HTX lớn, Farm enterprise | PostgreSQL + Redis | >2GB | 500+ ESP32 |
 
 **Nguyên tắc thiết kế:**

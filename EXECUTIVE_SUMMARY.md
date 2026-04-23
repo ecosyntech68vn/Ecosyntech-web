@@ -1,6 +1,6 @@
 # EcoSynTech FarmOS — Executive Summary / Tóm tắt điều hành
 
-Version: 6.0.0 | Release date: 2026-04-22 | Status: Pilot-ready / Trạng thái: Sẵn sàng cho Pilot
+Version: 6.0.0 | Release date: 2026-04-22 | Last Updated: 2026-04-23 | Status: Pilot-ready / Trạng thái: Sẵn sàng cho Pilot
 
 ---
 

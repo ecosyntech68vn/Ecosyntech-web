@@ -1,4 +1,5 @@
 # End-to-End Audit Evidence - E2E (Auth + RBAC + Export)
+Last Updated: 2026-04-23
 
 Scope: Lambda dual-path FarmOS Lite (SMB) & Pro (Enterprise). 
 Evidence pack intended for ISO 27001:2022 audit. 

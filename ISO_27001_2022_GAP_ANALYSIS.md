@@ -1,5 +1,6 @@
 # ISO 27001:2022 GAP ANALYSIS & AUDIT CHECKLIST
 # Phiên bản: 6.0.0 | Ngày: 2026-04-22
+Last Updated: 2026-04-23
 
 ---
 

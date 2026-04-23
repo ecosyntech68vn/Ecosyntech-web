@@ -4,6 +4,8 @@
 ---
 
 ## DANH MỤC SOP
+Note: Document aligned with the latest ISA/ISO 27001 alignment and architecture updates. For future updates, reference DOCS_GUIDE.md.
+Patch: Use the DOCS_GUIDE.md template for future SOP updates; ensure alignment across ISO GAP and Architecture docs.
 
 ### Series A: Security (Bảo mật)
 
