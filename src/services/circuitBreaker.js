@@ -19,6 +19,10 @@ class CircuitBreaker {
   }
 
   async execute(fn) {
+    return this.fire(fn);
+  }
+
+  async fire(fn) {
     if (!this.canAttempt()) {
       throw new Error(`Circuit ${this.name} is OPEN. Try again later.`);
     }
