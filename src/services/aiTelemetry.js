@@ -149,6 +149,10 @@ class AITelemetryService {
     }
   }
 
+  getAuditLog() {
+    return this.predictionAuditTrail.slice();
+  }
+
   enrichSensorData(sensorData, farmId = 'default') {
     const enriched = { ...sensorData };
     const timestamp = new Date().toISOString();

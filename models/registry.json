@@ -12,7 +12,7 @@
       "sizeMB": 3.9,
       "version": "1.0",
       "loaded": true,
-      "loadedAt": "2026-04-24T11:58:30.369Z",
+      "loadedAt": "2026-04-24T12:25:12.937Z",
       "source": "https://github.com/Poulinakis-Konstantinos/Deep-Learning-Plant-Disease-Detector",
       "sourceType": "GitHub",
       "classes": 38,
@@ -35,7 +35,7 @@
       "checksum": {
         "algorithm": "SHA256",
         "value": "899d4f5ec0e87604f2f52e8ee6d79a90ad91834de36997b91ac09fac044d5ed3",
-        "verifiedAt": "2026-04-24T11:58:30.371Z"
+        "verifiedAt": "2026-04-24T12:25:12.937Z"
       }
     },
     {
@@ -46,7 +46,7 @@
       "sizeMB": 10,
       "version": "1.0",
       "loaded": true,
-      "loadedAt": "2026-04-24T11:58:31.616Z",
+      "loadedAt": "2026-04-24T12:25:14.029Z",
       "source": "AI_ONNX_URL env var (user-provided)",
       "sourceType": "HTTP or Google Drive",
       "classes": null,

@@ -246,6 +246,29 @@ class AIEngine {
       model: this.modelBreaker.getState()
     };
   }
+
+  getTelemetryHealth() {
+    return {
+      timestamp: new Date().toISOString(),
+      telemetryEnabled: aiTelemetry.enabled,
+      qualityThreshold: MIN_DATA_QUALITY_SCORE,
+      circuitBreakers: this.getCircuitBreakerStatus()
+    };
+  }
+
+  validateInputData(data) {
+    const quality = aiTelemetry.assessDataQuality(data);
+    return {
+      score: quality.score,
+      grade: quality.grade,
+      meetsMinimumQuality: quality.score >= MIN_DATA_QUALITY_SCORE,
+      details: quality
+    };
+  }
+
+  getAuditTrail() {
+    return aiTelemetry.getAuditLog ? aiTelemetry.getAuditLog() : [];
+  }
 }
 
 module.exports = new AIEngine();

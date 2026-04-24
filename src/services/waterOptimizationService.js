@@ -2,6 +2,7 @@ const { getAll, getOne, runQuery } = require('../config/database');
 const logger = require('../config/logger');
 const { getBreaker } = require('./circuitBreaker');
 const { retry } = require('./retryService');
+const fuzzyController = require('./IrrigationFuzzyController');
 
 class WaterOptimizationService {
   constructor() {
@@ -57,6 +58,64 @@ class WaterOptimizationService {
   }
 
   async getIrrigationRecommendation(farmId = null) {
+    const useFuzzy = process.env.USE_FUZZY_IRRIGATION === 'true';
+    
+    if (useFuzzy) {
+      return this.getFuzzyIrrigationRecommendation(farmId);
+    }
+    
+    return this.getET0IrrigationRecommendation(farmId);
+  }
+
+  async getFuzzyIrrigationRecommendation(farmId = null) {
+    try {
+      const whereClause = farmId ? 'WHERE zone LIKE ?' : '';
+      const params = farmId ? [`%${farmId}%`] : [];
+      const sensors = getAll(
+        `SELECT type, value FROM sensors ${whereClause}`,
+        params
+      );
+      
+      const soilMoisture = sensors.find(s => s.type === 'soil')?.value || 30;
+      const weatherData = await this.getWeatherForecast();
+      
+      const targetMoisture = (this.minMoisture + this.maxMoisture) / 2;
+      const rainProb = weatherData?.rainfall !== undefined 
+        ? Math.min(100, (weatherData.rainfall > 0 ? 80 : 0))
+        : 0;
+      const hour = new Date().getHours();
+      
+      const fuzzyDuration = fuzzyController.compute(
+        targetMoisture,
+        soilMoisture,
+        rainProb,
+        hour
+      );
+      
+      const explanation = fuzzyController.explainDecision(
+        targetMoisture,
+        soilMoisture,
+        rainProb,
+        hour
+      );
+      
+      const action = fuzzyDuration > 0 ? 'irrigate' : 'wait';
+      
+      return {
+        action,
+        duration: fuzzyDuration,
+        reason: explanation.reason,
+        soilMoisture,
+        method: 'fuzzy',
+        explanation: explanation
+      };
+    } catch (e) {
+      logger.warn('[WaterOpt] Fuzzy recommendation error, fallback to ET0:', e.message);
+      return this.getET0IrrigationRecommendation(farmId);
+    }
+  }
+
+  async getET0IrrigationRecommendation(farmId = null) {
     try {
       const whereClause = farmId ? 'WHERE zone LIKE ?' : '';
       const params = farmId ? [`%${farmId}%`] : [];
