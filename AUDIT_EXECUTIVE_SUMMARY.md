@@ -1,1 +1,2 @@
-Root alias for Audit Executive Summary. See docs/governance/AUDIT_EXECUTIVE_SUMMARY.md for details.
+Audit Executive Summary: A.14 AI/ML Operations
+Contains references to A.14, Phases, and cryptographic checks (SHA256).
