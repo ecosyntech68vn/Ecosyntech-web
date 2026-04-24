@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../../config/logger');
 
-const DEFAULT_MODEL_PATH = path.join(__dirname, '../../models/irrigation_lstm.onnx');
+const DEFAULT_MODEL_PATH = path.join(__dirname, '../../../models/irrigation_lstm.onnx');
 
 class LSTMIrrigationPredictor {
   constructor(modelPath) {
@@ -50,18 +50,19 @@ class LSTMIrrigationPredictor {
     try {
       const seqLen = 3;
       const inputSize = 4;
-      const inputArray = new Float32Array(seqLen * inputSize);
-
+      
+      const flatFeatures = [];
       for (let i = 0; i < seqLen; i++) {
         const day = historicalData[i] || {};
-        inputArray[i * inputSize + 0] = (day.temp || day.temperature || 25) / 40;
-        inputArray[i * inputSize + 1] = (day.humidity || 70) / 100;
-        inputArray[i * inputSize + 2] = (day.rainfall || day.precipitation || 0) / 20;
-        inputArray[i * inputSize + 3] = (day.soilMoisture || 50) / 100;
+        flatFeatures.push((day.temp || day.temperature || 25) / 40);
+        flatFeatures.push((day.humidity || 70) / 100);
+        flatFeatures.push((day.rainfall || day.precipitation || 0) / 20);
+        flatFeatures.push((day.soilMoisture || 50) / 100);
       }
-
-      const inputTensor = new ort.Tensor('float32', inputArray, [1, seqLen, inputSize]);
-      const feeds = { input: inputTensor };
+      
+      const inputArray = new Float32Array(flatFeatures);
+      const inputTensor = new ort.Tensor('float32', inputArray, [1, 12]);
+      const feeds = { float_input: inputTensor };
 
       try {
         const results = await this.session.run(feeds);
