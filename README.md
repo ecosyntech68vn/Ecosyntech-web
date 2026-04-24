@@ -432,7 +432,7 @@ MIT License - EcoSynTech Global 2026
 | **Người đại diện** | Tạ Quang Thuận - CEO and FOUNDER |
 | **Điện thoại** | 0989516698 |
 | **Email** | kd.ecosyntech@gmail.com |
-| **Website** | https://ecosyntech.com |
+| **Website** | https://ecosyntechglobal.com |
 
 ---
 
