@@ -66,6 +66,7 @@ const systemInfoRoutes = require('./src/routes/system-info');
 const aiRoutes = require('./src/routes/ai');
 const bootstrapApi = require('./src/bootstrap/bootstrap_api');
 const cropsRoutes = require('./src/routes/crops');
+const journalRoutes = require('./src/routes/journal');
 const backupRoutes = require('./src/routes/backup');
 const healthReportService = require('./src/services/healthReportService');
 const waterOptimizationService = require('./src/services/waterOptimizationService');
@@ -294,6 +295,7 @@ app.use(compression());
   app.use('/api/system', systemInfoRoutes);
   app.use('/api/ai', aiRoutes);
   app.use('/api/crops', cropsRoutes);
+  app.use('/api/journal', journalRoutes);
   // Bootstrap management API (admin only)
   app.use('/api/bootstrap', bootstrapApi);
   app.use('/api/backup', backupRoutes);
