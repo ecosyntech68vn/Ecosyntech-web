@@ -137,3 +137,12 @@ if __name__ == '__main__':
     result = predict(lat, lon, date_str)
     
     print(json.dumps(result))
+
+# Health helper for the Python-side (optional integration point)
+def get_health():
+    return {
+        'model_loaded': os.path.exists(MODEL_FILE),
+        'scaler_loaded': os.path.exists(SCALER_FILE),
+        'model_path': MODEL_FILE,
+        'scaler_path': SCALER_FILE
+    }

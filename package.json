@@ -17,7 +17,9 @@
     "audit:fix": "npm audit fix --production",
     "build": "node --check server.js",
     "bootstrap-ai": "node bin/bootstrap-ai.js"
+    ,"validate-skills": "node scripts/validate-skills.js"
   },
+  "validate-skills": "node scripts/validate-skills.js",
   "bin": {
     "bootstrap-ai": "bin/bootstrap-ai.js"
   },

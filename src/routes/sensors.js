@@ -4,6 +4,7 @@ const { getAll, getOne, runQuery } = require('../config/database');
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../config/logger');
 const telemetryCache = require('../services/cacheRedisOrMemory');
+const deviceAuth = require('../middleware/deviceAuth');
 let cache = null;
 const CACHE_TTL = parseInt(process.env.SENSORS_CACHE_TTL || '30000');
 
@@ -48,7 +49,7 @@ router.get('/:type', asyncHandler(async (req, res) => {
   });
 }));
 
-router.post('/update', asyncHandler(async (req, res) => {
+router.post('/update', deviceAuth, asyncHandler(async (req, res) => {
   const { type, value } = req.body;
   
   if (!type || value === undefined) {

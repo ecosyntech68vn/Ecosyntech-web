@@ -222,9 +222,9 @@ Hệ thống bao gồm 9 intelligent skills tự động hóa vận hành nông 
 | **ComplianceMonitor** | ISO 27001 compliance | Continuous monitoring, gap analysis |
 
 ### 🔐 Security Skills
-| Skill | Mô tả | Tính năng |
-|-------|-------|-----------|
-| **SecurityAudit** | Giám sát bảo mật liên tục | Threat detection, vulnerability scanning |
+ | Skill | Mô tả | Tính năng |
+ |-------|-------|-----------|
+ | **SecurityAudit** | Giám sát bảo mật liên tục | Threat detection, vulnerability scanning |
 
 ### 🧬 Fuzzy Logic + GA
 | Component | Mô tả |
@@ -234,6 +234,10 @@ Hệ thống bao gồm 9 intelligent skills tự động hóa vận hành nông 
 | **AutoTuningService** | Chạy tối ưu hóa hàng ngày lúc 3 AM |
 
 ---
+
+### 🩺 Health & Maintenace (New)
+- Đã bổ sung endpoint kiểm tra sức khỏe ML: /api/ml/health (có auth) để theo dõi tình trạng các mô hình và hệ thống ML (LightGBM, AutoML, Federated, Aurora).
+- Điều chỉnh nhằm tăng tính tin cậy trong vận hành và phát hiện sớm các vấn đề mô hình.
 
 ## 🔌 API ENDPOINTS
 

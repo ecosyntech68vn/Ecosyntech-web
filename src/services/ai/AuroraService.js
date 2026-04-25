@@ -38,6 +38,7 @@ class AuroraService {
     }
 
     return new Promise((resolve, reject) => {
+      const t0 = Date.now();
       const pythonProcess = spawn('python3', [
         AURORA_SCRIPT_PATH,
         lat.toString(),
@@ -56,7 +57,15 @@ class AuroraService {
         stderr += data.toString();
       });
 
+      // Safety timer to prevent hung processes
+      const killTimer = setTimeout(() => {
+        try { pythonProcess.kill(); } catch (e) { /* ignore */ }
+      }, 15000);
+
       pythonProcess.on('close', (code) => {
+        const durationSec = (Date.now() - t0) / 1000;
+        try { if (typeof mlMetrics !== 'undefined' && mlMetrics && mlMetrics.record) mlMetrics.record('Aurora','forecast', durationSec, code === 0 ? 'success' : 'error'); } catch (e) { /* ignore metrics errors */ }
+        clearTimeout(killTimer);
         if (code !== 0) {
           logger.error(`[Aurora] Python process failed: ${stderr}`);
           resolve(this._getFallbackForecast(lat, lon, date));
@@ -80,14 +89,10 @@ class AuroraService {
       });
 
       pythonProcess.on('error', (err) => {
+        clearTimeout(killTimer);
         logger.error(`[Aurora] Spawn error: ${err.message}`);
         resolve(this._getFallbackForecast(lat, lon, date));
       });
-
-      setTimeout(() => {
-        pythonProcess.kill();
-        resolve(this._getFallbackForecast(lat, lon, date));
-      }, 10000);
     });
   }
 
@@ -142,6 +147,17 @@ class AuroraService {
       cacheSize: this.cache.size,
       cacheTimeout: this.cacheTimeout,
       scriptPath: AURORA_SCRIPT_PATH
+    };
+  }
+
+  getHealth() {
+    const weblocalHealth = (typeof require('../../services/weblocal/WebLocalBridge').getHealth === 'function') ? require('../../services/weblocal/WebLocalBridge').getHealth() : { healthy: true };
+    return {
+      healthy: true,
+      cacheSize: this.cache.size,
+      cacheTimeout: this.cacheTimeout,
+      scriptPath: AURORA_SCRIPT_PATH
+      , weblocal: weblocalHealth
     };
   }
 }

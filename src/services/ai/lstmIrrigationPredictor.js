@@ -2,6 +2,8 @@ const ort = require('onnxruntime-node');
 const fs = require('fs');
 const path = require('path');
 const logger = require('../../config/logger');
+const mlMetrics = require('../../metrics/mlMetrics');
+const WebLocalBridge = require('../../services/weblocal/WebLocalBridge');
 
 const DEFAULT_MODEL_PATH = path.join(__dirname, '../../../models/irrigation_lstm.onnx');
 
@@ -33,9 +35,13 @@ class LSTMIrrigationPredictor {
 
   async predict(historicalData) {
     await this.loadModel();
+    const t0 = process.hrtime.bigint();
 
     if (this.useFallback || !this.session) {
-      return this.fallbackPredict(historicalData?.[0]);
+      const res = this.fallbackPredict(historicalData?.[0]);
+      const durationSec = Number(process.hrtime.bigint() - t0) / 1e9;
+      if (typeof mlMetrics !== 'undefined' && mlMetrics && mlMetrics.record) mlMetrics.record('Irrigation','predict', durationSec, 'fallback');
+      return res;
     }
 
     if (!Array.isArray(historicalData) || historicalData.length === 0) {
@@ -69,13 +75,52 @@ class LSTMIrrigationPredictor {
         const waterAmount = results.output?.data?.[0] || results[Object.keys(results)[0]]?.data?.[0];
 
         inputTensor.dispose();
+        const durationSec = Number(process.hrtime.bigint() - t0) / 1e9;
+        if (typeof mlMetrics !== 'undefined' && mlMetrics && mlMetrics.record) mlMetrics.record('Irrigation','predict', durationSec, 'success');
+        try {
+          await WebLocalBridge.sendReport({
+            model: 'Irrigation LSTM Predictor',
+            event: 'predict',
+            latencyMs: durationSec * 1000,
+            outcome: 'success',
+            result: waterAmount,
+            features: normalizedFeatures
+          });
+        } catch (e) {
+          // ignore bridge errors
+        }
         return this.normalizeWaterResult(waterAmount);
       } catch (inferError) {
         logger.warn('[LSTM] Inference error:', inferError.message);
+        const durationSec = Number(process.hrtime.bigint() - t0) / 1e9;
+        if (typeof mlMetrics !== 'undefined' && mlMetrics && mlMetrics.record) mlMetrics.record('Irrigation','predict', durationSec, 'fallback');
+        try {
+          await WebLocalBridge.sendReport({
+            model: 'Irrigation LSTM Predictor',
+            event: 'predict',
+            latencyMs: durationSec * 1000,
+            outcome: 'fallback',
+            features: normalizedFeatures
+          });
+        } catch (e) { /* ignore */ }
         return this.fallbackPredict(historicalData[historicalData.length - 1]);
       }
     } catch (e) {
       logger.warn('[LSTM] Prediction error:', e.message);
+      const durationSec = Number(process.hrtime.bigint() - t0) / 1e9;
+      if (typeof mlMetrics !== 'undefined' && mlMetrics && mlMetrics.record) mlMetrics.record('Irrigation','predict', durationSec, 'error');
+      try {
+        await WebLocalBridge.sendReport({
+          model: 'Irrigation LSTM Predictor',
+          event: 'predict',
+          latencyMs: durationSec * 1000,
+          outcome: 'error',
+          error: e.message,
+          features: normalizedFeatures
+        });
+      } catch (br) {
+        // ignore bridge errors
+      }
       return this.fallbackPredict(historicalData[historicalData.length - 1]);
     }
   }
@@ -140,6 +185,15 @@ class LSTMIrrigationPredictor {
     if (this.session) {
       this.session = null;
     }
+  }
+  getHealth() {
+    const weblocalHealth = (typeof WebLocalBridge !== 'undefined' && WebLocalBridge.getHealth) ? WebLocalBridge.getHealth() : { enabled: false };
+    return {
+      healthy: !this.useFallback && !!this.session,
+      sessionActive: !!this.session,
+      fallback: this.useFallback
+      , weblocal: weblocalHealth
+    };
   }
 }
 

@@ -9,6 +9,8 @@
  */
 
 const ort = require('onnxruntime-node');
+const mlMetrics = require('../../metrics/mlMetrics');
+const WebLocalBridge = require('../../services/weblocal/WebLocalBridge');
 const path = require('path');
 const fs = require('fs');
 const logger = require('../../config/logger');
@@ -148,10 +150,26 @@ class LightGBMPredictor {
     await this.initialize();
     
     const validatedFeatures = this._validateFeatures(features);
+    const t0 = process.hrtime.bigint();
     const normalizedFeatures = this._normalizeFeatures(validatedFeatures);
     
     if (this.useFallback || !this.session) {
-      return this._fallbackPredict(normalizedFeatures);
+      const res = this._fallbackPredict(normalizedFeatures);
+      const durationFallback = 0; // fallback path is fast; duration not critical here
+      if (mlMetrics && mlMetrics.record) mlMetrics.record('LightGBM', 'predict', durationFallback, 'fallback');
+      // Report to Web Local (best-effort)
+      try {
+        await WebLocalBridge.sendReport({
+          model: 'LightGBM Yield Predictor',
+          event: 'predict',
+          latencyMs: durationFallback,
+          outcome: 'fallback',
+          details: { features: normalizedFeatures }
+        });
+      } catch (e) {
+        // swallow web local errors
+      }
+      return res;
     }
 
     try {
@@ -175,11 +193,29 @@ class LightGBMPredictor {
       this.predictionCount++;
       
       logger.info(`[LightGBM] Predicted yield: ${predictedYield.toFixed(2)} tons/ha`);
+      const durationSec = Number(process.hrtime.bigint() - t0) / 1e9;
+      const latencyMs = durationSec * 1000;
+      if (mlMetrics && mlMetrics.record) mlMetrics.record('LightGBM', 'predict', durationSec, 'success');
+      // Report to Web Local
+      try {
+        await WebLocalBridge.sendReport({
+          model: 'LightGBM Yield Predictor',
+          event: 'predict',
+          latencyMs,
+          outcome: 'success',
+          result: predictedYield,
+          features: normalizedFeatures
+        });
+      } catch (e) {
+        // ignore reporting failures
+      }
       return Math.round(predictedYield * 100) / 100;
       
     } catch (error) {
       this.errorCount++;
       logger.error(`[LightGBM] Prediction error: ${error.message}`);
+      const durationSec = Number(process.hrtime.bigint() - t0) / 1e9;
+      if (mlMetrics && mlMetrics.record) mlMetrics.record('LightGBM', 'predict', durationSec, 'error');
       return this._fallbackPredict(normalizedFeatures);
     }
   }
@@ -248,12 +284,19 @@ class LightGBMPredictor {
 
   getHealth() {
     const errorRate = this.predictionCount > 0 ? this.errorCount / this.predictionCount : 0;
-    return {
+    const base = {
       healthy: errorRate < 0.1 && this.isInitialized,
       errorRate: Math.round(errorRate * 100) / 100,
       modelAvailable: !this.useFallback,
       sessionActive: this.session !== null
     };
+    // Web Local health integration
+    try {
+      base.weblocal = WebLocalBridge.getHealth ? WebLocalBridge.getHealth() : { enabled: false };
+    } catch (e) {
+      base.weblocal = { enabled: false };
+    }
+    return base;
   }
 }
 

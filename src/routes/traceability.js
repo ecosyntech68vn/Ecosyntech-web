@@ -133,7 +133,10 @@ router.post('/batch', auth, async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const batchCode = value.batch_code || `BATCH-${Date.now().toString(36).toUpperCase()}-${uuidv4().substring(0, 4).toUpperCase()}`;
+    // Generate batch code in GAS V10 format: BATCH-XXXX-XXXX (8 hex chars)
+    const timestampHex = Date.now().toString(16).toUpperCase().slice(-4);
+    const randomHex = uuidv4().replace(/-/g, '').slice(0, 4).toUpperCase();
+    const batchCode = value.batch_code || `BATCH-${timestampHex}-${randomHex}`;
     const batchId = uuidv4();
 
     runQuery(

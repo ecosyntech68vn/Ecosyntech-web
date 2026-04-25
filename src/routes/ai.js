@@ -3,6 +3,7 @@ const router = express.Router();
 const { auth } = require('../middleware/auth');
 const aiEngine = require('../services/aiEngine');
 const { getAll, runQuery } = require('../config/database');
+const WebLocalBridge = require('../services/weblocal/WebLocalBridge');
 
 const TFLiteDiseasePredictor = require('../services/ai/tfliteDiseasePredictor');
 const LSTMIrrigationPredictor = require('../services/ai/lstmIrrigationPredictor');
@@ -222,6 +223,16 @@ router.get('/models', auth, async (req, res) => {
   }
 });
 
+// Web Local health (Web Local integration status)
+router.get('/weblocal/health', auth, async (req, res) => {
+  try {
+    const health = WebLocalBridge.getHealth();
+    res.json({ ok: true, data: health });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 router.post('/detect-disease', async (req, res) => {
   try {
     const { image_url, temperature, humidity, soilMoisture } = req.body;
@@ -309,6 +320,24 @@ router.get('/ml/status', auth, async (req, res) => {
         timestamp: new Date().toISOString()
       }
     });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// Comprehensive ML health endpoint
+router.get('/ml/health', auth, async (req, res) => {
+  try {
+    const irrigationHealth = irrigationPredictor.getHealth ? irrigationPredictor.getHealth() : null;
+    const health = {
+      lightgbm: LightGBMPredictor.getHealth(),
+      automl: AutoMLService.getHealth(),
+      federated: federatedClient.getHealth(),
+      irrigation: irrigationHealth,
+      aurora: (AuroraService && typeof AuroraService.getHealth === 'function') ? AuroraService.getHealth() : { healthy: true },
+      timestamp: new Date().toISOString()
+    };
+    res.json({ ok: true, data: health });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }
