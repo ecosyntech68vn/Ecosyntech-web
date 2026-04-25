@@ -1,6 +1,8 @@
 # EcoSynTech FarmOS - Quick Start Guide
 ## Hướng dẫn Bắt đầu Nhanh
 
+**Firmware:** v9.2.0 | **Backend:** GAS V10 | **Platform:** ESP32 IP67
+
 ---
 
 ## 1. SAO CHÉP TỪ HỘP

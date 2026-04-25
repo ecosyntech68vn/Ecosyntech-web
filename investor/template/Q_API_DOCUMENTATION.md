@@ -1,15 +1,26 @@
 # EcoSynTech FarmOS V2.0 - API Documentation
 ## Tài liệu API / API Documentation
 
+**Firmware:** v9.2.0 | **Backend:** GAS V10 | **Security:** ISO 27001
+
 ---
 
 ## 1. API OVERVIEW
+
+### Architecture
+
+```
+ESP32 (Firmware v9.2.0) → WebLocal Gateway → GAS V10 Backend → Google Cloud Storage
+                                              ↓
+                                    REST API / GraphQL
+```
 
 ### Base URL
 
 ```
 Development: http://139.59.101.136:3000/api
 Production: http://139.59.101.136:3000/api
+GAS V10 Web App: https://script.google.com/macros/s/{SCRIPT_ID}/exec
 ```
 
 ### Authentication

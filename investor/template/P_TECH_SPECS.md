@@ -1,12 +1,60 @@
 # EcoSynTech FarmOS V2.0 - Technical Specifications
 ## Thông số Kỹ thuật / Technical Specifications
 
+**Firmware:** v9.2.0 | **Backend:** GAS V10 | **Security:** ISO 27001
+
 ---
 
 ## 1. HARDWARE SPECIFICATIONS
 
 ### Controller Specifications
 
+```
+┌────────────────────────────────────────────────────────────┐
+│              CONTROLLER SPECS (ESP32) - Firmware v9.2.0     │
+├────────────────────────────────────────────────────────────┤
+│                                                              │
+│  PROCESSOR:                                                 │
+│  ├── ESP32-WROOM-32E                                       │
+│  ├── Firmware: v9.2.0 (OTA enabled)                       │
+│  ├── Dual-core Xtensa LX6                                 │
+│  ├── Clock: 240MHz                                        │
+│  └── Flash: 4MB                                           │
+│                                                              │
+│  MEMORY:                                                    │
+│  ├── SRAM: 520KB                                          │
+│  ├── Flash: 4MB                                          │
+│  └── MicroSD: Up to 32GB (optional)                       │
+│                                                              │
+│  CONNECTIVITY:                                             │
+│  ├── WiFi: 802.11 b/g/n                                   │
+│  ├── Bluetooth: 4.2 LE                                    │
+│  ├── Ethernet: 10/100 (optional)                         │
+│  └── LoRa: 868MHz/920MHz (optional)                      │
+│                                                              │
+│  I/O:                                                      │
+│  ├── Digital I/O: 8                                       │
+│  ├── Analog Input: 4 (ADS1115)                            │
+│  ├── Relay Output: 8 (5A/250VAC)                       │
+│  └── RS485: 1 (optional)                                │
+│                                                              │
+│  POWER:                                                    │
+│  ├── Input: 12V DC                                        │
+│  ├── Consumption: 2W (idle), 5W (active)               │
+│  └── Battery backup: 6V (optional)                        │
+│                                                              │
+│  ENCLOSURE:                                                 │
+│  ├── IP67 rated                                          │
+│  ├── ABS plastic                                         │
+│  ├── Dimensions: 200×150×80mm                            │
+│  └── Temperature: -20°C to 70°C                           │
+│                                                              │
+│  SECURITY:                                                 │
+│  ├── Secure Boot                                         │
+│  ├── Flash Encryption                                    │
+│  └── OTA Signing (v9.2.0)                                │
+│                                                              │
+└────────────────────────────────────────────────────────────┘
 ```
 ┌────────────────────────────────────────────────────────────┐
 │              CONTROLLER SPECS (ESP32)                       │

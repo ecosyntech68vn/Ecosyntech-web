@@ -1,6 +1,8 @@
 # EcoSynTech FarmOS - Installation Guide
 ## Hướng dẫn Lắp đặt Chi tiết (ISO 9001 Compliant)
 
+**Firmware:** v9.2.0 | **Backend:** GAS V10 | **Platform:** ESP32 IP67
+
 ---
 
 ## 1. CHUẨN BỊ

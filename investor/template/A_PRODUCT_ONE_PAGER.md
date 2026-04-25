@@ -29,24 +29,15 @@
 
 ---
 
+## CÔNG NGHỆ
+
+- **ESP32 IP67 Controller** - Firmware v9.2.0, OTA update
+- **GAS V10 Backend** - Google Apps Script, REST API
+- **8 AI/ML Models (Edge)** - Irrigation, Yield, Disease, Weather
+- **Offline-first** - LAN/WiFi, works without internet
+- **ISO 27001 Compliant** - Bảo mật dữ liệu
+
 ## SẢN PHẨM CÓ GÌ?
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    EcoSynTech FarmOS                       │
-├─────────────────────────────────────────────────────────────┤
-│  🌡️  Cảm biến nhiệt độ, độ ẩm, đất                      │
-│  💧  Tưới nước tự động                                    │
-│  📱  Điều khiển qua điện thoại                             │
-│  🔔  Cảnh báo qua Zalo khi có vấn đề                       │
-│  🤖  AI dự đoán thời tiết, bệnh cây                        │
-│  📊  Xem dữ liệu mọi lúc mọi nơi                           │
-│  🔒  Bảo mật theo tiêu chuẩn quốc tế                        │
-│  🌧️  Hoạt động không cần internet                          │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
 
 ## CÁC GÓI SẢN PHẨM
 

@@ -1,6 +1,8 @@
 # EcoSynTech FarmOS V2.0 - Master Index
 ## Chỉ mục Tổng hợp / Master Document Index
 
+**Firmware:** v9.2.0 | **Backend:** GAS V10 | **Platform:** ESP32 IP67 | **Security:** ISO 27001
+
 ---
 
 ## 1. DOCUMENT INVENTORY
@@ -9,9 +11,9 @@
 
 | Letter | Document | Version | Date | Status |
 |--------|----------|---------|------|--------|
-| **A** | A_PRODUCT_ONE_PAGER.md | 1.0 | 2026-04-25 | ✅ Complete |
-| **B** | B_QUICK_START_GUIDE.md | 1.0 | 2026-04-25 | ✅ Complete |
-| **C** | C_INSTALLATION_GUIDE.md | 1.0 | 2026-04-25 | ✅ Complete |
+| **A** | A_PRODUCT_ONE_PAGER.md | 1.1 | 2026-04-25 | ✅ Complete |
+| **B** | B_QUICK_START_GUIDE.md | 1.1 | 2026-04-25 | ✅ Complete |
+| **C** | C_INSTALLATION_GUIDE.md | 1.1 | 2026-04-25 | ✅ Complete |
 | **D** | D_FAQ_CUSTOMERS.md | 1.0 | 2026-04-25 | ✅ Complete |
 | **E** | E_SALES_SCRIPT.md | 1.0 | 2026-04-25 | ✅ Complete |
 | **F** | F_DEMO_CHECKLIST.md | 1.0 | 2026-04-25 | ✅ Complete |
@@ -20,12 +22,12 @@
 | **I** | I_CASHFLOW_ANALYSIS.md | 1.0 | 2026-04-25 | ✅ Complete |
 | **J** | J_ONBOARDING_PROCESS.md | 1.0 | 2026-04-25 | ✅ Complete |
 | **K** | K_SUPPORT_SLA.md | 1.0 | 2026-04-25 | ✅ Complete |
-| **L** | L_OPERATIONS_PLAYBOOK.md | 1.0 | 2026-04-25 | ✅ Complete |
+| **L** | L_OPERATIONS_PLAYBOOK.md | 1.1 | 2026-04-25 | ✅ Complete |
 | **M** | M_CASE_STUDY_TEMPLATE.md | 1.0 | 2026-04-25 | ✅ Complete |
 | **N** | N_PRICING_GOVERNANCE.md | 1.0 | 2026-04-25 | ✅ Complete |
 | **O** | O_DISCOUNT_POLICY.md | 1.0 | 2026-04-25 | ✅ Complete |
-| **P** | P_TECH_SPECS.md | 1.0 | 2026-04-25 | ✅ Complete |
-| **Q** | Q_API_DOCUMENTATION.md | 1.0 | 2026-04-25 | ✅ Complete |
+| **P** | P_TECH_SPECS.md | 1.1 | 2026-04-25 | ✅ Complete |
+| **Q** | Q_API_DOCUMENTATION.md | 1.1 | 2026-04-25 | ✅ Complete |
 | **R** | R_PARTNER_AGREEMENT.md | 1.0 | 2026-04-25 | ✅ Complete |
 | **S** | S_WARRANTY_POLICY.md | 1.0 | 2026-04-25 | ✅ Complete |
 | **T** | T_RETURN_POLICY.md | 1.0 | 2026-04-25 | ✅ Complete |
@@ -34,7 +36,16 @@
 | **W** | W_PARTNER_RECRUITMENT.md | 1.0 | 2026-04-25 | ✅ Complete |
 | **X** | X_TRAINING_MATERIALS.md | 1.0 | 2026-04-25 | ✅ Complete |
 | **Y** | Y_MEETING_MINUTES.md | 1.0 | 2026-04-25 | ✅ Complete |
-| **Z** | Z_MASTER_INDEX.md | 1.0 | 2026-04-25 | ✅ Complete |
+| **Z** | Z_MASTER_INDEX.md | 1.1 | 2026-04-25 | ✅ Complete |
+
+### New Documents (GAS V10 & Firmware v9.2.0)
+
+| Document | Version | Date | Status |
+|----------|---------|------|--------|
+| GAS_V10.md | 1.0 | 2026-04-25 | ✅ Complete |
+| FIRMWARE_V9_2_0.md | 1.0 | 2026-04-25 | ✅ Complete |
+| SOP_GAS_V10.md | 1.0 | 2026-04-25 | ✅ Complete |
+| SOP_FW_V9_2.md | 1.0 | 2026-04-25 | ✅ Complete |
 
 ---
 
@@ -182,31 +193,76 @@
 /root/EcoSynTech-Clade-Code/investor/template/
 ```
 
-### Files Created (26 documents)
+### Files Created (30 documents + 4 new)
 
-- A_PRODUCT_ONE_PAGER.md → Z_MASTER_INDEX.md
+- A_PRODUCT_ONE_PAGER.md → Z_MASTER_INDEX.md (A-Z)
+- GAS_V10.md - GAS V10 Backend Architecture
+- FIRMWARE_V9_2_0.md - Firmware v9.2.0 Overview
+- SOP_GAS_V10.md - GAS V10 Ingestion SOP
+- SOP_FW_V9_2.md - Firmware OTA SOP
 
 ---
 
-## 6. DOCUMENT CONTROL
+## 6. TECHNOLOGY STACK
+
+### System Architecture
+
+```
+┌────────────────────────────────────────────────────────────┐
+│           EcoSynTech FarmOS V2.0 Architecture               │
+├────────────────────────────────────────────────────────────┤
+│                                                              │
+│  EDGE (Firmware v9.2.0):                                    │
+│  └── ESP32 IP67 Controller                                 │
+│      ├── 8 AI/ML Models (Edge)                            │
+│      ├── OTA Update (Secure Boot + Signing)               │
+│      ├── Offline-first (Local storage 7 days)              │
+│      └── Secure Storage (Flash Encryption)                │
+│                                                              │
+│  GATEWAY (WebLocal):                                        │
+│  └── LAN Gateway                                           │
+│      ├── Data aggregation                                  │
+│      ├── Local dashboard                                  │
+│      └── TLS/mTLS to GAS V10                              │
+│                                                              │
+│  BACKEND (GAS V10):                                         │
+│  └── Google Apps Script Web App                           │
+│      ├── REST API endpoints                                │
+│      ├── OAuth 2.0 + API Keys                             │
+│      ├── Google Sheets/BigQuery/Firestore storage         │
+│      └── ISO 27001 compliant                              │
+│                                                              │
+│  FRONTEND:                                                  │
+│  └── Web Dashboard + Mobile App (PWA)                      │
+│      ├── Real-time monitoring                             │
+│      ├── Historical charts                                │
+│      └── Alert management (Zalo)                          │
+│                                                              │
+└────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 7. DOCUMENT CONTROL
 
 ### Version History
 
 | Version | Date | Changes |
 |----------|------|---------|
-| 1.0 | 2026-04-25 | Initial release |
+| 1.0 | 2026-04-25 | Initial release (A-Z + pricing docs) |
+| 1.1 | 2026-04-25 | Added GAS V10, Firmware v9.2.0, SOPs |
 
 ### Next Steps
 
 - Review all documents
-- Update with specific data
+- Add more detail to API spec
 - Translate to English (if needed)
 - Push to GitHub
 
 ---
 
-**Document:** Master Index V1.0
-**Version:** 1.0 - Complete
+**Document:** Master Index V1.1
+**Version:** 1.1 - Complete with GAS V10 & Firmware v9.2.0
 **Date:** 2026-04-25
 **Prepared for:** CEO & Investors
 

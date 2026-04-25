@@ -1,14 +1,16 @@
 # EcoSynTech FarmOS V2.0 - Executive Summary
 ## Tổng quan Điều hành & Điểm Hòa vốn
 
+**Firmware:** v9.2.0 | **Backend:** GAS V10 | **Platform:** ESP32 IP67 | **Security:** ISO 27001
+
 ---
 
 ## 1. SẢN PHẨM & MARKET
 
 ### Sản phẩm
-- **FarmOS V2.0**: IoT nông nghiệp offline-first + AI/ML 8 models
-- **Hardware**: ESP32-based sensors & controllers
-- **Platform**: WebLocal (LAN) + GAS Cloud hybrid
+- **FarmOS V2.0**: IoT nông nghiệp offline-first + AI/ML 8 models (Edge AI)
+- **Hardware**: ESP32-based IP67 sensors & controllers (Firmware v9.2.0)
+- **Platform**: WebLocal (LAN) + GAS V10 Cloud hybrid backend
 
 ### Thị trường
 - **TAM**: 9 triệu hộ nông nghiệp VN
