@@ -35,6 +35,10 @@ jobs:
         run: npm run lint
         continue-on-error: false
 
+      - name: TypeScript Check
+        run: npm run typecheck
+        continue-on-error: true
+
       - name: Check imports
         run: node --check server.js
 

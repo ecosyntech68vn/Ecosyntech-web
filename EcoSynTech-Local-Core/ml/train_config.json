@@ -1,6 +1,6 @@
 {
-  "db_path": "/root/EcoSynTech-Claude-Code/data/ecosyntech.db",
-  "output_model_path": "/root/EcoSynTech-Claude-Code/models/lightgbm_yield.onnx",
+  "db_path": "/root/.local/share/opencode/worktree/235aa3d499aaf6c96fd60e7c52a229e9ffd9b946/hidden-eagle/EcoSynTech-Local-Core/data/ecosyntech.db",
+  "output_model_path": "/root/.local/share/opencode/worktree/235aa3d499aaf6c96fd60e7c52a229e9ffd9b946/hidden-eagle/EcoSynTech-Local-Core/models/lightgbm_yield.onnx",
   "feature_cols": [
     "temperature_avg",
     "rainfall_mm",
