@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Năng lượng - EcoSynTech</title>
+    <style>
+        :root { --primary: #10b981; --secondary: #6366f1; --danger: #ef4444; --warning: #f59e0b; --success: #10b981; --dark: #1f2937; --darker: #0f172a; --light: #f3f4f6; --gray: #64748b; --border: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui; background: var(--light); min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: var(--darker); color: white; padding: 20px 0; z-index: 100; }
+        .logo { padding: 20px; font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 20px; }
+        .logo span { color: white; }
+        .nav-section { padding: 10px 20px; font-size: 11px; text-transform: uppercase; color: var(--gray); font-weight: 600; }
+        .nav-item { display: flex; align-items: center; padding: 12px 20px; color: #94a3b8; text-decoration: none; gap: 12px; }
+        .nav-item:hover, .nav-item.active { background: rgba(16, 185, 129, 0.15); color: var(--primary); border-left: 3px solid var(--primary); }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h1 { font-size: 26px; color: var(--dark); font-weight: 600; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; }
+        .btn-primary { background: var(--primary); color: white; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+        .stat-card h3 { font-size: 12px; color: var(--gray); margin-bottom: 8px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; }
+        .stat-card .unit { font-size: 14px; color: var(--gray); }
+        .stat-card .savings { font-size: 12px; color: var(--success); margin-top: 5px; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); margin-bottom: 25px; }
+        .card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .card-header h2 { font-size: 16px; color: var(--dark); font-weight: 600; }
+        .card-body { padding: 20px 24px; }
+        .energy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .energy-card { background: var(--light); padding: 20px; border-radius: 10px; text-align: center; }
+        .energy-icon { font-size: 36px; margin-bottom: 10px; }
+        .energy-value { font-size: 32px; font-weight: 700; color: var(--dark); }
+        .energy-label { font-size: 14px; color: var(--gray); }
+        .energy-bar { height: 12px; background: var(--border); border-radius: 6px; margin-top: 15px; overflow: hidden; }
+        .energy-bar .fill { height: 100%; border-radius: 6px; }
+        .energy-bar .fill.solar { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+        .energy-bar .fill.grid { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+        .energy-bar .fill.battery { background: linear-gradient(90deg, #10b981, #059669); }
+        .chart-area { height: 200px; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 8px; display: flex; align-items: flex-end; justify-content: space-around; padding: 20px; }
+        .chart-bar { width: 30px; background: var(--primary); border-radius: 4px 4px 0 0; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        .table th { font-weight: 600; color: var(--gray); font-size: 12px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo">Eco<span>SynTech</span> 🟢</div>
+        <div class="nav-section">Vận hành</div>
+        <a href="dashboard-main.html" class="nav-item">📊 Dashboard</a>
+        <a href="dashboard-devices.html" class="nav-item">📡 Thiết bị</a>
+        <a href="dashboard-monitoring.html" class="nav-item">📈 Giám sát</a>
+        <a href="dashboard-traceability.html" class="nav-item">🔗 Truy xuất nguồn gốc</a>
+        <a href="dashboard-energy.html" class="nav-item active">⚡ Năng lượng</a>
+        <a href="dashboard-multifarm.html" class="nav-item">🏞️ Đa trang trại</a>
+        <div class="nav-section">Báo cáo</div>
+        <a href="dashboard-reports.html" class="nav-item">📄 Reports</a>
+    </nav>
+    
+    <main class="main-content">
+        <div class="header">
+            <h1>⚡ Quản lý Năng lượng</h1>
+            <button class="btn btn-primary" onclick="optimizeEnergy()">⚡ Tối ưu</button>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Tổng tiêu thụ hôm nay</h3>
+                <div class="value">24.5<span class="unit"> kWh</span></div>
+                <div class="savings">↓ 12% so với hôm qua</div>
+            </div>
+            <div class="stat-card">
+                <h3>Solar Generation</h3>
+                <div class="value">18.2<span class="unit"> kWh</span></div>
+                <div class="savings">↑ 74% từ năng lượng mặt trời</div>
+            </div>
+            <div class="stat-card">
+                <h3>Grid tiêu thụ</h3>
+                <div class="value">6.3<span class="unit"> kWh</span></div>
+                <div class="savings">↓ 26% tiết kiệm điện</div>
+            </div>
+            <div class="stat-card">
+                <h3>Tiết kiệm tháng này</h3>
+                <div class="value">2.4<span class="unit">M đ</span></div>
+                <div class="savings">↑ 18% so với tháng trước</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Nguồn năng lượng</h2>
+            </div>
+            <div class="card-body">
+                <div class="energy-grid">
+                    <div class="energy-card">
+                        <div class="energy-icon">☀️</div>
+                        <div class="energy-value">74%</div>
+                        <div class="energy-label">Từ Solar</div>
+                        <div class="energy-bar"><div class="fill solar" style="width: 74%;"></div></div>
+                    </div>
+                    <div class="energy-card">
+                        <div class="energy-icon">🔌</div>
+                        <div class="energy-value">26%</div>
+                        <div class="energy-label">Từ Grid</div>
+                        <div class="energy-bar"><div class="fill grid" style="width: 26%;"></div></div>
+                    </div>
+                    <div class="energy-card">
+                        <div class="energy-icon">🔋</div>
+                        <div class="energy-value">92%</div>
+                        <div class="energy-label">Pin dự phòng</div>
+                        <div class="energy-bar"><div class="fill battery" style="width: 92%;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Tiêu thụ theo giờ (hôm nay)</h2>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <div class="chart-bar" style="height: 20%;"></div>
+                    <div class="chart-bar" style="height: 15%;"></div>
+                    <div class="chart-bar" style="height: 10%;"></div>
+                    <div class="chart-bar" style="height: 8%;"></div>
+                    <div class="chart-bar" style="height: 12%;"></div>
+                    <div class="chart-bar" style="height: 25%;"></div>
+                    <div class="chart-bar" style="height: 45%;"></div>
+                    <div class="chart-bar" style="height: 65%;"></div>
+                    <div class="chart-bar" style="height: 80%;"></div>
+                    <div class="chart-bar" style="height: 75%;"></div>
+                    <div class="chart-bar" style="height: 60%;"></div>
+                    <div class="chart-bar" style="height: 45%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--gray); margin-top: 10px;">
+                    <span>00:00</span><span>04:00</span><span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span><span>24:00</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Thiết bị tiêu thụ năng lượng</h2>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Thiết bị</th>
+                            <th>Vị trí</th>
+                            <th>Công suất</th>
+                            <th>Tiêu thụ hôm nay</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>💨 Quạt làm mát x4</td>
+                            <td>Nông trại A - Nhà kính 1</td>
+                            <td>200W</td>
+                            <td>4.8 kWh</td>
+                            <td>Đang chạy</td>
+                        </tr>
+                        <tr>
+                            <td>💧 Máy bơm nước x2</td>
+                            <td>Nông trại A - Hệ thống tưới</td>
+                            <td>750W</td>
+                            <td>3.2 kWh</td>
+                            <td>Đang chạy</td>
+                        </tr>
+                        <tr>
+                            <td>💡 Đèn grow light x8</td>
+                            <td>Nông trại A - Nhà kính 2</td>
+                            <td>60W</td>
+                            <td>2.1 kWh</td>
+                            <td>Đang chạy</td>
+                        </tr>
+                        <tr>
+                            <td>🌡️ Hệ thống lạnh</td>
+                            <td>Nhà kho</td>
+                            <td>1200W</td>
+                            <td>8.5 kWh</td>
+                            <td>Đang chạy</td>
+                        </tr>
+                        <tr>
+                            <td>📡 Hệ thống IoT</td>
+                            <td>Trạm trung tâm</td>
+                            <td>50W</td>
+                            <td>1.2 kWh</td>
+                            <td>Hoạt động 24/7</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        function optimizeEnergy() { alert('Đang tối ưu hóa năng lượng...'); }
+    </script>
+</body>
+</html>

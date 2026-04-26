@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Đa trang trại - EcoSynTech</title>
+    <style>
+        :root { --primary: #10b981; --secondary: #6366f1; --danger: #ef4444; --warning: #f59e0b; --success: #10b981; --dark: #1f2937; --darker: #0f172a; --light: #f3f4f6; --gray: #64748b; --border: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui; background: var(--light); min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: var(--darker); color: white; padding: 20px 0; z-index: 100; }
+        .logo { padding: 20px; font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 20px; }
+        .logo span { color: white; }
+        .nav-section { padding: 10px 20px; font-size: 11px; text-transform: uppercase; color: var(--gray); font-weight: 600; }
+        .nav-item { display: flex; align-items: center; padding: 12px 20px; color: #94a3b8; text-decoration: none; gap: 12px; }
+        .nav-item:hover, .nav-item.active { background: rgba(16, 185, 129, 0.15); color: var(--primary); border-left: 3px solid var(--primary); }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h1 { font-size: 26px; color: var(--dark); font-weight: 600; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; }
+        .btn-primary { background: var(--primary); color: white; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+        .stat-card h3 { font-size: 12px; color: var(--gray); margin-bottom: 8px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); margin-bottom: 25px; }
+        .card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .card-header h2 { font-size: 16px; color: var(--dark); font-weight: 600; }
+        .card-body { padding: 20px 24px; }
+        .farm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .farm-card { background: var(--light); border-radius: 12px; overflow: hidden; transition: all 0.3s; cursor: pointer; }
+        .farm-card:hover { transform: translateY(-5px); box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
+        .farm-header { height: 80px; background: linear-gradient(135deg, var(--primary), #059669); padding: 15px; color: white; }
+        .farm-name { font-size: 18px; font-weight: 600; margin-bottom: 5px; }
+        .farm-location { font-size: 12px; opacity: 0.8; }
+        .farm-body { padding: 15px; }
+        .farm-stat { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+        .farm-stat-label { color: var(--gray); }
+        .farm-stat-value { font-weight: 600; }
+        .farm-status { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .status-dot.active { background: var(--success); }
+        .status-dot.warning { background: var(--warning); }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        .table th { font-weight: 600; color: var(--gray); font-size: 12px; text-transform: uppercase; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo">Eco<span>SynTech</span> 🟢</div>
+        <div class="nav-section">Vận hành</div>
+        <a href="dashboard-main.html" class="nav-item">📊 Dashboard</a>
+        <a href="dashboard-devices.html" class="nav-item">📡 Thiết bị</a>
+        <a href="dashboard-monitoring.html" class="nav-item">📈 Giám sát</a>
+        <a href="dashboard-traceability.html" class="nav-item">🔗 Truy xuất nguồn gốc</a>
+        <a href="dashboard-energy.html" class="nav-item">⚡ Năng lượng</a>
+        <a href="dashboard-multifarm.html" class="nav-item active">🏞️ Đa trang trại</a>
+        <div class="nav-section">Báo cáo</div>
+        <a href="dashboard-reports.html" class="nav-item">📄 Reports</a>
+    </nav>
+    
+    <main class="main-content">
+        <div class="header">
+            <h1>🏞️ Quản lý Đa trang trại</h1>
+            <button class="btn btn-primary" onclick="addFarm()">+ Thêm trang trại</button>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Tổng trang trại</h3>
+                <div class="value">5</div>
+            </div>
+            <div class="stat-card">
+                <h3>Tổng diện tích</h3>
+                <div class="value">25<span style="font-size: 14px;"> ha</span></div>
+            </div>
+            <div class="stat-card">
+                <h3>Thiết bị đang hoạt động</h3>
+                <div class="value" style="color: var(--success);">142/156</div>
+            </div>
+            <div class="stat-card">
+                <h3>Doanh thu tháng</h3>
+                <div class="value">180<span style="font-size: 14px;">M</span></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Danh sách trang trại</h2>
+            </div>
+            <div class="card-body">
+                <div class="farm-grid">
+                    <div class="farm-card">
+                        <div class="farm-header">
+                            <div class="farm-name">Nông trại A</div>
+                            <div class="farm-location">📍 Đà Lạt, Lâm Đồng</div>
+                        </div>
+                        <div class="farm-body">
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Diện tích</span>
+                                <span class="farm-stat-value">8 ha</span>
+                            </div>
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Thiết bị</span>
+                                <span class="farm-stat-value">52/55</span>
+                            </div>
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Doanh thu</span>
+                                <span class="farm-stat-value">65M/th</span>
+                            </div>
+                            <div class="farm-status">
+                                <div class="status-dot active"></div>
+                                <span style="font-size: 12px; color: var(--success);">Hoạt động tốt</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="farm-card">
+                        <div class="farm-header" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                            <div class="farm-name">Nông trại B</div>
+                            <div class="farm-location">📍 Đức Trọng, Lâm Đồng</div>
+                        </div>
+                        <div class="farm-body">
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Diện tích</span>
+                                <span class="farm-stat-value">6 ha</span>
+                            </div>
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Thiết bị</span>
+                                <span class="farm-stat-value">38/42</span>
+                            </div>
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Doanh thu</span>
+                                <span class="farm-stat-value">48M/th</span>
+                            </div>
+                            <div class="farm-status">
+                                <div class="status-dot warning"></div>
+                                <span style="font-size: 12px; color: var(--warning);">Cần bảo trì</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="farm-card">
+                        <div class="farm-header" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <div class="farm-name">Nông trại C</div>
+                            <div class="farm-location">📍 Bảo Lộc, Lâm Đồng</div>
+                        </div>
+                        <div class="farm-body">
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Diện tích</span>
+                                <span class="farm-stat-value">5 ha</span>
+                            </div>
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Thiết bị</span>
+                                <span class="farm-stat-value">28/30</span>
+                            </div>
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Doanh thu</span>
+                                <span class="farm-stat-value">35M/th</span>
+                            </div>
+                            <div class="farm-status">
+                                <div class="status-dot active"></div>
+                                <span style="font-size: 12px; color: var(--success);">Hoạt động tốt</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="farm-card">
+                        <div class="farm-header" style="background: linear-gradient(135deg, #ec4899, #be185d);">
+                            <div class="farm-name">Nông trại D</div>
+                            <div class="farm-location">📍 Di Linh, Lâm Đồng</div>
+                        </div>
+                        <div class="farm-body">
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Diện tích</span>
+                                <span class="farm-stat-value">4 ha</span>
+                            </div>
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Thiết bị</span>
+                                <span class="farm-stat-value">15/18</span>
+                            </div>
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Doanh thu</span>
+                                <span class="farm-stat-value">22M/th</span>
+                            </div>
+                            <div class="farm-status">
+                                <div class="status-dot active"></div>
+                                <span style="font-size: 12px; color: var(--success);">Hoạt động tốt</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="farm-card">
+                        <div class="farm-header" style="background: linear-gradient(135deg, #14b8a6, #0d9488);">
+                            <div class="farm-name">Nông trại E</div>
+                            <div class="farm-location">📍 Lạc Dương, Lâm Đồng</div>
+                        </div>
+                        <div class="farm-body">
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Diện tích</span>
+                                <span class="farm-stat-value">2 ha</span>
+                            </div>
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Thiết bị</span>
+                                <span class="farm-stat-value">9/11</span>
+                            </div>
+                            <div class="farm-stat">
+                                <span class="farm-stat-label">Doanh thu</span>
+                                <span class="farm-stat-value">10M/th</span>
+                            </div>
+                            <div class="farm-status">
+                                <div class="status-dot active"></div>
+                                <span style="font-size: 12px; color: var(--success);">Hoạt động tốt</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>So sánh hiệu suất trang trại</h2>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Trang trại</th>
+                            <th>Sản lượng/tháng</th>
+                            <th>Năng suất</th>
+                            <th>Chi phí vận hành</th>
+                            <th>Lợi nhuận</th>
+                            <th>Hiệu quả</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Nông trại A</td>
+                            <td>12,000 kg</td>
+                            <td>1,500 kg/ha</td>
+                            <td>25M</td>
+                            <td>40M</td>
+                            <td><span class="badge badge-success">Tốt</span></td>
+                        </tr>
+                        <tr>
+                            <td>Nông trại B</td>
+                            <td>8,500 kg</td>
+                            <td>1,417 kg/ha</td>
+                            <td>22M</td>
+                            <td>26M</td>
+                            <td><span class="badge badge-warning">Trung bình</span></td>
+                        </tr>
+                        <tr>
+                            <td>Nông trại C</td>
+                            <td>6,200 kg</td>
+                            <td>1,240 kg/ha</td>
+                            <td>18M</td>
+                            <td>17M</td>
+                            <td><span class="badge badge-success">Tốt</span></td>
+                        </tr>
+                        <tr>
+                            <td>Nông trại D</td>
+                            <td>3,800 kg</td>
+                            <td>950 kg/ha</td>
+                            <td>12M</td>
+                            <td>10M</td>
+                            <td><span class="badge badge-warning">Trung bình</span></td>
+                        </tr>
+                        <tr>
+                            <td>Nông trại E</td>
+                            <td>2,100 kg</td>
+                            <td>1,050 kg/ha</td>
+                            <td>6M</td>
+                            <td>4M</td>
+                            <td><span class="badge badge-warning">Trung bình</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        function addFarm() { window.location.href = '/farms/new'; }
+    </script>
+</body>
+</html>

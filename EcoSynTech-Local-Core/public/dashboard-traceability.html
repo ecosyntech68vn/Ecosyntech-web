@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truy xuất nguồn gốc - EcoSynTech</title>
+    <style>
+        :root { --primary: #10b981; --secondary: #6366f1; --danger: #ef4444; --warning: #f59e0b; --success: #10b981; --dark: #1f2937; --darker: #0f172a; --light: #f3f4f6; --gray: #64748b; --border: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui; background: var(--light); min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: var(--darker); color: white; padding: 20px 0; z-index: 100; overflow-y: auto; }
+        .logo { padding: 20px; font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 20px; }
+        .logo span { color: white; }
+        .nav-section { padding: 10px 20px; font-size: 11px; text-transform: uppercase; color: var(--gray); font-weight: 600; }
+        .nav-item { display: flex; align-items: center; padding: 12px 20px; color: #94a3b8; text-decoration: none; gap: 12px; }
+        .nav-item:hover, .nav-item.active { background: rgba(16, 185, 129, 0.15); color: var(--primary); border-left: 3px solid var(--primary); }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h1 { font-size: 26px; color: var(--dark); font-weight: 600; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; }
+        .btn-primary { background: var(--primary); color: white; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+        .stat-card h3 { font-size: 12px; color: var(--gray); margin-bottom: 8px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); margin-bottom: 25px; }
+        .card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .card-header h2 { font-size: 16px; color: var(--dark); font-weight: 600; }
+        .card-body { padding: 20px 24px; }
+        .timeline { position: relative; padding-left: 30px; }
+        .timeline::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+        .timeline-item { position: relative; padding-bottom: 25px; }
+        .timeline-item::before { content: ''; position: absolute; left: -24px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); border: 2px solid white; }
+        .timeline-date { font-size: 12px; color: var(--gray); margin-bottom: 5px; }
+        .timeline-title { font-weight: 600; font-size: 14px; margin-bottom: 5px; }
+        .timeline-desc { font-size: 13px; color: var(--gray); }
+        .qr-section { display: flex; gap: 30px; align-items: start; }
+        .qr-code { width: 150px; height: 150px; background: white; border: 2px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .product-info { flex: 1; }
+        .product-info h3 { font-size: 18px; margin-bottom: 10px; }
+        .product-info p { font-size: 14px; color: var(--gray); margin-bottom: 8px; }
+        .product-info .label { font-weight: 600; color: var(--dark); }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        .table th { font-weight: 600; color: var(--gray); font-size: 12px; text-transform: uppercase; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-input { flex: 1; padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo">Eco<span>SynTech</span> 🟢</div>
+        <div class="nav-section">Vận hành</div>
+        <a href="dashboard-main.html" class="nav-item">📊 Dashboard</a>
+        <a href="dashboard-devices.html" class="nav-item">📡 Thiết bị</a>
+        <a href="dashboard-monitoring.html" class="nav-item">📈 Giám sát</a>
+        <a href="dashboard-traceability.html" class="nav-item active">🔗 Truy xuất nguồn gốc</a>
+        <a href="dashboard-energy.html" class="nav-item">⚡ Năng lượng</a>
+        <a href="dashboard-multifarm.html" class="nav-item">🏞️ Đa trang trại</a>
+        <div class="nav-section">Báo cáo</div>
+        <a href="dashboard-reports.html" class="nav-item">📄 Reports</a>
+    </nav>
+    
+    <main class="main-content">
+        <div class="header">
+            <h1>🔗 Truy xuất Nguồn gốc</h1>
+            <button class="btn btn-primary" onclick="createProduct()">+ Tạo sản phẩm</button>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Tổng lô hàng</h3>
+                <div class="value">1,234</div>
+            </div>
+            <div class="stat-card">
+                <h3>Đã truy xuất</h3>
+                <div class="value" style="color: var(--success);">1,156</div>
+            </div>
+            <div class="stat-card">
+                <h3>Đang vận chuyển</h3>
+                <div class="value" style="color: var(--warning);">78</div>
+            </div>
+            <div class="stat-card">
+                <h3>QR Codes</h3>
+                <div class="value">2,456</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Tra cứu sản phẩm</h2>
+            </div>
+            <div class="card-body">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Nhập mã QR hoặc ID sản phẩm...">
+                    <button class="btn btn-primary">🔍 Tra cứu</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Thông tin sản phẩm: Rau muống hữu cơ</h2>
+                <span class="badge badge-success">✓ Đã xác minh</span>
+            </div>
+            <div class="card-body">
+                <div class="qr-section">
+                    <div class="qr-code">
+                        <div style="text-align: center; font-size: 12px; color: var(--gray);">
+                            📱 QR Code<br>
+                            <span style="font-size: 18px;">🔲 ████</span>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3>🌱 Rau muống hữu cơ VietGap</h3>
+                        <p><span class="label">Mã sản phẩm:</span> RAU-2026-0426-001</p>
+                        <p><span class="label">Trang trại:</span> Nông trại A - Đà Lạt</p>
+                        <p><span class="label">Ngày thu hoạch:</span> 26/04/2026</p>
+                        <p><span class="label">Hạn sử dụng:</span> 02/05/2026</p>
+                        <p><span class="label">Khối lượng:</span> 50 kg</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Lộ trình sản phẩm</h2>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">26/04/2026 - 14:30</div>
+                        <div class="timeline-title">🏪 Đến tay người tiêu dùng</div>
+                        <div class="timeline-desc">Siêu thị Co.opmart - Chi nhánh Q1</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">26/04/2026 - 08:00</div>
+                        <div class="timeline-title">🚚 Vận chuyển đến điểm bán</div>
+                        <div class="timeline-desc">Từ kho trung tâm - Phương tiện: xe lạnh</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">25/04/2026 - 22:00</div>
+                        <div class="timeline-title">📦 Nhập kho trung tâm</div>
+                        <div class="timeline-desc">Kho phân phối EcoSynTech - TP.HCM</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">25/04/2026 - 16:00</div>
+                        <div class="timeline-title">✅ Đóng gói & dán QR</div>
+                        <div class="timeline-desc">Tiêu chuẩn đóng gói: EcoBox-02</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">26/04/2026 - 06:00</div>
+                        <div class="timeline-title">🌾 Thu hoạch</div>
+                        <div class="timeline-desc">Nông trại A - Đà Lạt, Lâm Đồng</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">01/03/2026</div>
+                        <div class="timeline-title">🌱 Gieo trồng</div>
+                        <div class="timeline-desc">Giống: Rau muống 302, Phương thức: Thủy canh</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Lịch sử gần đây</h2>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Mã sản phẩm</th>
+                            <th>Tên</th>
+                            <th>Trang trại</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>RAU-2026-0426-001</td>
+                            <td>Rau muống hữu cơ</td>
+                            <td>Nông trại A</td>
+                            <td>26/04/2026</td>
+                            <td><span class="badge badge-success">Đã bán</span></td>
+                        </tr>
+                        <tr>
+                            <td>CAI-2026-0425-089</td>
+                            <td>Cải ngọt hữu cơ</td>
+                            <td>Nông trại B</td>
+                            <td>25/04/2026</td>
+                            <td><span class="badge badge-success">Đã bán</span></td>
+                        </tr>
+                        <tr>
+                            <td>XAL-2026-0425-088</td>
+                            <td>Xà lách romaine</td>
+                            <td>Nông trại A</td>
+                            <td>25/04/2026</td>
+                            <td><span class="badge badge-success">Đã bán</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        function createProduct() { window.location.href = '/traceability/new'; }
+    </script>
+</body>
+</html>
