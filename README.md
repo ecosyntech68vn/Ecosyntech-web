@@ -42,3 +42,18 @@ Contact
 
 License
 - MIT or appropriate license as per project governance.
+
+Docs Portal
+- Live Docs Portal: https://ecosyntech68vn.github.io/Ecosyntech-web/
+- This mini docs portal provides centralized governance and SOP references for ISO27001, 5S, PDCA, SWOT, 5W1H, SOPs, Architecture, Glossary, and Changelog.
+- Quick links:
+- ISO27001: https://ecosyntech68vn.github.io/Ecosyntech-web/ISO27001.html
+- PDCA: https://ecosyntech68vn.github.io/Ecosyntech-web/PDCA.html
+- 5S: https://ecosyntech68vn.github.io/Ecosyntech-web/5S.html
+- SWOT: https://ecosyntech68vn.github.io/Ecosyntech-web/SWOT.html
+- 5W1H: https://ecosyntech68vn.github.io/Ecosyntech-web/5W1H.html
+- Architecture: https://ecosyntech68vn.github.io/Ecosyntech-web/Architecture.html
+- Glossary: https://ecosyntech68vn.github.io/Ecosyntech-web/Glossary.html
+- Changelog: https://ecosyntech68vn.github.io/Ecosyntech-web/Changelog.html
+- SOPs: Change-Management.html, Backup-Restore.html, Release-Management.html, Monitoring-Observability.html, Security-Audit-Logging.html, Disaster-Recovery.html, Access-Control-Review.html
+- Docs Portal is published via GitHub Pages; it will be updated automatically when merging to main.
