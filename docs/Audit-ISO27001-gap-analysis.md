@@ -96,3 +96,10 @@ Evidence references (e.g.)
 Next Steps
 - Implement the remediation tasks in a staged plan and update the audit report as tasks are completed.
 - Run the ISO27001 gap-analysis again after applying fixes to confirm residual risk levels drop.
+Phase 1 Deliverables (Baseline)
+- ISO27001 Gap Analysis: identify gaps across A.5 - A.18 with risk rating and remediation plan.
+- Asset Register skeleton: docs/ASSET_REGISTER.md with fields and owner mappings.
+- HR Security Policy skeleton: docs/HR_SECURITY_POLICY.md covering onboarding/offboarding, training, access control.
+- ISO27001 SoA Template: docs/ISO27001_SOA_TEMPLATE.md in place with mapping guidance.
+- Audit Evidence skeleton: docs/Audit-Evidence-Skeleton.md (to be added if needed) or update existing evidence plan.
+- Phase 1 plan and backlog notes (this doc updated to guide Phase 2).
