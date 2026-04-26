@@ -1,0 +1,14 @@
+{
+  "name": "ecosyntech-docs-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./node_modules/@docusaurus/core/cli.js start",
+    "build": "node ./node_modules/@docusaurus/core/cli.js build",
+    "dev": "node ./node_modules/@docusaurus/core/cli.js start"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^2.5.0",
+    "@docusaurus/preset-classic": "^2.5.0"
+  }
+}

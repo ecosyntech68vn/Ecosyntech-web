@@ -1,0 +1,8 @@
+/* Minimal styling for docs site */
+:root{--bg:#fff;--fg:#111;--link:#0b5ed7;}
+html,body{background:var(--bg);color:var(--fg);margin:0;padding:0}
+header{padding:1rem 1.25rem;border-bottom:1px solid #e5e5e5}
+nav a{color:var(--link);margin-right:12px;text-decoration:none}
+nav a:hover{text-decoration:underline}
+main{padding:1rem 0}
+h2{font-size:1.2em}
