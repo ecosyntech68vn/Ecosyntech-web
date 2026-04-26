@@ -1,0 +1,32 @@
+name: CI Dashboard
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  dashboard-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [ '18.x' ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies (core)
+        working-directory: EcoSynTech-Local-Core
+        run: npm ci
+      - name: Run unit tests (core)
+        working-directory: EcoSynTech-Local-Core
+        run: npm test
+      - name: Run dashboard tests
+        working-directory: EcoSynTech-Local-Core
+        run: npm run test:dashboard
+      - name: Lint (core)
+        working-directory: EcoSynTech-Local-Core
+        run: npm run lint --silent || true

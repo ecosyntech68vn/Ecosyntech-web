@@ -65,6 +65,7 @@ const healthReportRoutes = require('./src/routes/health-report');
 const farmsRoutes = require('./src/routes/farms');
 const farmosCoreRoutes = require('./src/routes/farmos-core');
 const dashboardRoutes = require('./src/routes/dashboard');
+const dashboardApiRoutes = require('./routes/dashboard-api');
 const workersRoutes = require('./src/routes/workers');
 const supplyChainRoutes = require('./src/routes/supply-chain');
 const aiModelLoader = require('./src/bootstrap/modelLoader');
@@ -353,15 +354,25 @@ app.use(compression());
   app.use('/api/health-report', healthReportRoutes);
   app.use('/api/farms', farmsRoutes);
   app.use('/api', farmosCoreRoutes); // /organizations, /plans, /assets, /logs, /quantities
-  app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+// Mount additional mock API routes for dashboard data
+app.use('/api/dashboard', dashboardApiRoutes);
   app.use('/api/workers', workersRoutes);
   app.use('/api/supply-chain', supplyChainRoutes);
   // Initialize lightweight/optional AI models lazily on startup to keep boot fast
-  aiModelLoader.initialize().then(() => {
-    // models initialized
-  }).catch((err) => {
-    console.error('[BOOTSTRAP] AI model bootstrap error on startup:', err?.message || err);
-  });
+  // In test environment, skip heavy AI bootstrap to keep tests fast and deterministic
+  if (process.env.NODE_ENV !== 'test') {
+    aiModelLoader.initialize().then(() => {
+      // models initialized
+    }).catch((err) => {
+      console.error('[BOOTSTRAP] AI model bootstrap error on startup:', err?.message || err);
+    });
+  } else {
+    // Warm-up skip: ensure a microtask yield for test readiness
+    Promise.resolve().then(() => {
+      // No-op in test to avoid long boot times
+    });
+  }
   app.use('/api/inventory', inventoryRoutes);
   app.use('/api/finance', financeRoutes);
   app.use('/api/system', systemInfoRoutes);

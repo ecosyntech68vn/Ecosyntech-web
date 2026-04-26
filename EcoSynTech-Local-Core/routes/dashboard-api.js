@@ -154,7 +154,7 @@ const mockData = {
   }
 };
 
-router.get('/api/dashboard/:type', (req, res) => {
+router.get('/:type', (req, res) => {
   const { type } = req.params;
   
   switch(type) {

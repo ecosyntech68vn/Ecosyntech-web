@@ -35,4 +35,4 @@ const IoTDashboardModule = (() => {
   return { init, destroy, loadRules, startRealTimeUpdates, cleanup };
 })();
 
-export default IoTDashboardModule;
+module.exports = IoTDashboardModule;
