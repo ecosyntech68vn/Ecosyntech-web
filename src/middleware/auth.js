@@ -17,8 +17,15 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 const REFRESH_EXPIRES_IN = process.env.REFRESH_EXPIRES_IN || '7d';
 const SESSION_TIMEOUT = parseInt(process.env.SESSION_TIMEOUT || '1800', 10);
 
+const MAX_FAILED_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS || '5', 10);
+const LOCKOUT_DURATION_MS = parseInt(process.env.LOGIN_LOCKOUT_DURATION || '900000', 10);
+const LOCKOUT_WINDOW_MS = 300000;
+
 const refreshTokenStore = new Map();
 const REFRESH_TOKEN_MAX = 1000;
+
+const failedLoginAttempts = new Map();
+const lockedAccounts = new Map();
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -96,6 +103,49 @@ function verifyToken(token) {
   } catch (err) {
     return null;
   }
+}
+
+function recordFailedLogin(userId) {
+  var now = Date.now();
+  var attempts = failedLoginAttempts.get(userId);
+  if (!attempts) {
+    attempts = { count: 0, windowStart: now };
+  }
+  
+  if (now - attempts.windowStart > LOCKOUT_WINDOW_MS) {
+    attempts = { count: 1, windowStart: now };
+    failedLoginAttempts.set(userId, attempts);
+    return 1;
+  }
+  
+  attempts.count = attempts.count + 1;
+  failedLoginAttempts.set(userId, attempts);
+  
+  if (attempts.count >= MAX_FAILED_ATTEMPTS) {
+    lockedAccounts.set(userId, now + LOCKOUT_DURATION_MS);
+    logger.warn('[Auth] Account locked due to failed attempts:', userId);
+    failedLoginAttempts.delete(userId);
+  }
+  
+  return attempts.count;
+}
+
+function checkAccountLocked(userId) {
+  var lockUntil = lockedAccounts.get(userId);
+  if (lockUntil && lockUntil > Date.now()) {
+    var remainingSeconds = Math.ceil((lockUntil - Date.now()) / 1000);
+    return remainingSeconds;
+  }
+  if (lockUntil) {
+    lockedAccounts.delete(userId);
+    failedLoginAttempts.delete(userId);
+  }
+  return 0;
+}
+
+function clearFailedLogins(userId) {
+  failedLoginAttempts.delete(userId);
+  lockedAccounts.delete(userId);
 }
 
 function auth(req, res, next) {
@@ -200,6 +250,9 @@ module.exports = {
   rotateRefreshToken,
   revokeRefreshToken,
   storeRefreshToken,
+  recordFailedLogin,
+  checkAccountLocked,
+  clearFailedLogins,
   auth,
   optionalAuth,
   requireRole,

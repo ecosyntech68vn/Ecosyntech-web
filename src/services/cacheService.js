@@ -142,6 +142,16 @@ function invalidatePattern(pattern) {
   }
 }
 
+function invalidateByPrefix(prefix) {
+  const cache = getCache();
+  
+  for (const key of cache.cache.keys()) {
+    if (key.startsWith(prefix)) {
+      cache.delete(key);
+    }
+  }
+}
+
 function stopCache() {
   if (cacheInterval) {
     clearInterval(cacheInterval);
@@ -158,6 +168,7 @@ module.exports = {
   cached,
   invalidate,
   invalidatePattern,
+  invalidateByPrefix,
   stopCache,
   MemoryCache
 };
